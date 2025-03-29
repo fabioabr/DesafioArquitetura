@@ -1,0 +1,6 @@
+services:
+  financialservices.api:
+    image: ${DOCKER_REGISTRY-}financialservicesapi
+    build:
+      context: .
+      dockerfile: services/FinancialServices/FinancialServices.Api/Dockerfile
