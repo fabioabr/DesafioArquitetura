@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
-namespace FinancialServices.Api
+namespace FinancialServices.Infrastructure.Data.Contract.Entity
 {
-    public interface IEndpoint
+    public interface IEntity
     {
-        RouteHandlerBuilder Map(IEndpointRouteBuilder routeBuilder);
+        public Guid Id { get; set; }
 
     }
 }

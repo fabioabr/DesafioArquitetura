@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using FinancialServices.Api.Attributes;
 using System;
+using FinancialServices.Api.Contract;
 
 namespace FinancialServices.Api.Endpoints.V1.Transaction
 {
@@ -13,7 +14,9 @@ namespace FinancialServices.Api.Endpoints.V1.Transaction
             {
                 return Results.Ok("PostTransactionEndpoint v1");
             })
-                .Produces(StatusCodes.Status200OK);
+                .RequireAuthorization("PremiumUsers")
+                .Produces(StatusCodes.Status200OK)
+                ;
                
 
         }

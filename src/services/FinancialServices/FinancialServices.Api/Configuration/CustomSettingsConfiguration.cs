@@ -1,15 +1,18 @@
 ﻿using FinancialServices.Api.Model;
+using FinancialServices.Infrastructure.Enum;
 
 namespace FinancialServices.Api.Configuration
 {
-    public static class CustomApplicationSettings
+    public static class CustomSettingsConfiguration
     {
         public static WebApplicationBuilder AddCustomApplicationSettingsConfiguration(this WebApplicationBuilder builder)
         {
             builder.Services
                 .AddOptions<ApplicationSettingsModel>()
                 .Bind(builder.Configuration.GetSection("CustomSettings"))
-                .ValidateDataAnnotations(); 
+                .ValidateDataAnnotations()
+                .Validate(x => Enum.IsDefined(typeof(DatabaseTypeEnum), x.DatabaseToUse), "Invalid database provider specified");
+            ; 
 
             return builder;
              
