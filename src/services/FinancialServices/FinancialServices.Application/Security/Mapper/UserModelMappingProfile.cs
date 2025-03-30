@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
+using FinancialServices.Domain.Security.Entity;
 using FinancialServices.Domain.Security.Model;
-using FinancialServices.Infrastructure.Data.Concrete.Entity;
 
 namespace FinancialServices.Application.Security.Mapper
 {

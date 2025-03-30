@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinancialServices.Infrastructure.Utils.Cache
+namespace FinancialServices.Utils.Cache
 {
     [AttributeUsage(AttributeTargets.Method)]
     [Injection(typeof(CacheAspect))] 
@@ -16,7 +16,7 @@ namespace FinancialServices.Infrastructure.Utils.Cache
         public CachedMethodAttribute(int hours = 0, int minutes = 0, int seconds = 0)
         {
             var totalSeconds = hours * 3600 + minutes * 60 + seconds;
-            this.Duration = TimeSpan.FromSeconds(totalSeconds);
+            Duration = TimeSpan.FromSeconds(totalSeconds);
         }
     }
 }

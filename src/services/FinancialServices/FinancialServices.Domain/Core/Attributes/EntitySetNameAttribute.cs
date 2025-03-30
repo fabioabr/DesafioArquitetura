@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinancialServices.Infrastructure.Data.Attributes
+namespace FinancialServices.Domain.Core.Attributes
 {
     
-    [AttributeUsage(AttributeTargets.Interface)]
+    [AttributeUsage(AttributeTargets.Class)]
     public class EntitySetNameAttribute : Attribute
     {       
         public EntitySetNameAttribute(string name)

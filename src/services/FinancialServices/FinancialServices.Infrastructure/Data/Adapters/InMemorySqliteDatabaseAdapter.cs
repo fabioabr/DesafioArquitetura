@@ -1,12 +1,7 @@
-﻿using FinancialServices.Infrastructure.Data.Contract;
-using FinancialServices.Infrastructure.Data.Contract.Entity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FinancialServices.Domain.Core.Contracts;
+using FinancialServices.Infrastructure.Data.Contract;
 
-namespace FinancialServices.Infrastructure.Data.Concrete.Adapters
+namespace FinancialServices.Infrastructure.Data.Adapters
 {
     public class InMemorySqliteDatabaseAdapter : IDatabaseAdapter
     {

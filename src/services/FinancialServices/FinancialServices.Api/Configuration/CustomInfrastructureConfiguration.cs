@@ -1,20 +1,13 @@
-﻿using FinancialServices.Api.Model;
-using FinancialServices.Infrastructure.Data.Concrete;
-using FinancialServices.Infrastructure.Data.Concrete.Factory;
+﻿using FinancialServices.Domain.Core.Contracts;
+using FinancialServices.Domain.Security.Entity;
 using FinancialServices.Infrastructure.Data.Contract;
-using FinancialServices.Infrastructure.Data.Contract.Repository;
+using FinancialServices.Infrastructure.Data.Factory;
+using FinancialServices.Infrastructure.Data.Repository;
 using FinancialServices.Infrastructure.Enum;
-using FinancialServices.Utils.Logging;
-using Microsoft.Extensions.Options;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Bson.Serialization;
 using MongoDB.Bson;
-using Serilog;
-using Serilog.Filters;
-using Serilog.Sinks.Grafana.Loki;
-using System.Reflection.PortableExecutable;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
+using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace FinancialServices.Api.Configuration
 {
@@ -47,7 +40,7 @@ namespace FinancialServices.Api.Configuration
             );
             #endregion 
 
-            builder.Services.AddSingleton<IUserRepository, UserRepository>();
+            builder.Services.AddSingleton<IRepository<UserEntity>, Repository<UserEntity>>();
 
             return builder;
                 

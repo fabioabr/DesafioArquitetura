@@ -1,20 +1,21 @@
 ﻿using AutoMapper;
+using FinancialServices.Domain.Core.Contracts;
 using FinancialServices.Domain.Security.Contract;
+using FinancialServices.Domain.Security.Entity;
 using FinancialServices.Domain.Security.Model;
-using FinancialServices.Infrastructure.Data.Contract.Repository;
-using FinancialServices.Infrastructure.Utils.Cache;
+using FinancialServices.Utils.Cache;
 using Microsoft.Extensions.Logging;
 
 namespace FinancialServices.Application.Security.UseCase
 {
     public class AuthUserUseCase : IAuthUserUseCase
     {
-        private readonly IUserRepository userRepository;
+        private readonly IRepository<UserEntity> userRepository;
         private readonly ILogger logger;
         private readonly IMapper mapper;
         
 
-        public AuthUserUseCase(IUserRepository userRepository, ILogger logger, IMapper mapper)
+        public AuthUserUseCase(IRepository<UserEntity> userRepository, ILogger logger, IMapper mapper)
         {
             this.userRepository = userRepository;
             this.logger = logger;
@@ -23,10 +24,12 @@ namespace FinancialServices.Application.Security.UseCase
 
         
         [CachedMethod(minutes: 30)]
-        public async Task<UserModel?> AuthUserAsync(string apiKey, string[] requiredRoles)
+        public UserModel? AuthUser(string apiKey, string[] requiredRoles)
         {
             
-            var user = await userRepository.GetByApiKeyAsync(apiKey);
+            var user = userRepository.Query()
+                .Where(p=>p.ApiKey == apiKey)
+                .FirstOrDefault();
 
             if (user == null)
             {

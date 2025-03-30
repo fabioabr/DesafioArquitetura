@@ -1,6 +1,6 @@
 ﻿using FinancialServices.Infrastructure.Enum;
 
-namespace FinancialServices.Infrastructure.Data.Contract.Factory
+namespace FinancialServices.Infrastructure.Data.Contract
 {
     public interface IDatabaseAdapterFactory
     {

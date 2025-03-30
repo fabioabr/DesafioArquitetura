@@ -1,14 +1,11 @@
-﻿using FinancialServices.Infrastructure.Data.Attributes;
+﻿using FinancialServices.Domain.Core.Contracts;
 using FinancialServices.Infrastructure.Data.Contract;
-using FinancialServices.Infrastructure.Data.Contract.Entity;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
-namespace FinancialServices.Infrastructure.Data.Concrete.Adapters
+namespace FinancialServices.Infrastructure.Data.Adapters
 {
     public class MongoDBDatabaseAdapter : IDatabaseAdapter
     {

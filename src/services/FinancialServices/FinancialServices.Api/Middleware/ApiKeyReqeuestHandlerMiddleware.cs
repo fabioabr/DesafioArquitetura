@@ -32,7 +32,7 @@ public class ApiKeyRequestHandlerMiddleware(RequestDelegate next)
         var apiKey = key.First()!;
         var requiredRoles = await GetRequiredRolesAsync(context, policyProvider);
 
-        var user = await authUserUseCase.AuthUserAsync(apiKey, requiredRoles);
+        var user = authUserUseCase.AuthUser(apiKey, requiredRoles);
 
         if (user == null)
         {

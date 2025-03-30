@@ -1,10 +1,9 @@
-﻿using FinancialServices.Infrastructure.Data.Contract;
-using FinancialServices.Infrastructure.Data.Contract.Entity;
-using FinancialServices.Infrastructure.Data.Contract.Repository;
+﻿using FinancialServices.Domain.Core.Contracts;
+using FinancialServices.Infrastructure.Data.Contract;
 
-namespace FinancialServices.Infrastructure.Data.Concrete
+namespace FinancialServices.Infrastructure.Data.Repository
 {
-    public abstract class Repository<T> : IRepository<T> where T : IEntity
+    public class Repository<T> : IRepository<T> where T : IEntity
     {
         private readonly IDatabaseAdapter databaseAdapter;
 

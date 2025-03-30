@@ -9,7 +9,7 @@ namespace FinancialServices.Domain.Security.Contract
 {
     public interface IAuthUserUseCase
     {
-        Task<UserModel?> AuthUserAsync(string apiKey, string[] requiredRoles);
+        UserModel? AuthUser(string apiKey, string[] requiredRoles);
 
     }
 }

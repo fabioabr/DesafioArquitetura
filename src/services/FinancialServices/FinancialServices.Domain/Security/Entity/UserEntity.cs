@@ -1,13 +1,11 @@
-﻿using FinancialServices.Infrastructure.Data.Attributes;
-using FinancialServices.Infrastructure.Data.Contract.Entity;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
+﻿using FinancialServices.Domain.Core.Attributes;
+using FinancialServices.Domain.Core.Contracts;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FinancialServices.Infrastructure.Data.Concrete.Entity
+namespace FinancialServices.Domain.Security.Entity
 {
 
-    [Table("users")]
+    [EntitySetName("Users")]
     public class UserEntity : IEntity
     {
         

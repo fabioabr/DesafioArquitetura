@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinancialServices.Infrastructure.Data.Contract.Entity
+namespace FinancialServices.Domain.Core.Contracts
 {
     public interface IEntity
     {

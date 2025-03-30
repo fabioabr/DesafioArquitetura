@@ -1,6 +1,4 @@
-﻿using FinancialServices.Infrastructure.Data.Contract.Entity;
-
-namespace FinancialServices.Infrastructure.Data.Contract.Repository
+﻿namespace FinancialServices.Domain.Core.Contracts
 {
     public interface IRepository<T> where T : IEntity
     {

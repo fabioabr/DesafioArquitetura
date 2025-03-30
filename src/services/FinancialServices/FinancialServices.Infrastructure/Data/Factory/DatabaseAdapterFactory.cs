@@ -1,9 +1,8 @@
-﻿using FinancialServices.Infrastructure.Data.Concrete.Adapters;
+﻿using FinancialServices.Infrastructure.Data.Adapters;
 using FinancialServices.Infrastructure.Data.Contract;
-using FinancialServices.Infrastructure.Data.Contract.Factory;
 using FinancialServices.Infrastructure.Enum;
 
-namespace FinancialServices.Infrastructure.Data.Concrete.Factory
+namespace FinancialServices.Infrastructure.Data.Factory
 {
     public class DatabaseAdapterFactory : IDatabaseAdapterFactory
     {

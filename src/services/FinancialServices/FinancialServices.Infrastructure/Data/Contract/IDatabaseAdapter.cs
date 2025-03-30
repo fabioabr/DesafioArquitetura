@@ -1,4 +1,4 @@
-﻿using FinancialServices.Infrastructure.Data.Contract.Entity;
+﻿using FinancialServices.Domain.Core.Contracts;
 
 namespace FinancialServices.Infrastructure.Data.Contract
 {
