@@ -4,6 +4,7 @@ using FinancialServices.Domain.Security.Contract;
 using FinancialServices.Domain.Security.Entity;
 using FinancialServices.Domain.Security.Model;
 using FinancialServices.Utils.Cache;
+using FinancialServices.Utils.Shared;
 using Microsoft.Extensions.Logging;
 
 namespace FinancialServices.Application.Security.UseCase
@@ -13,53 +14,55 @@ namespace FinancialServices.Application.Security.UseCase
         private readonly IRepository<UserEntity> userRepository;
         private readonly ILogger logger;
         private readonly IMapper mapper;
-        
-
-        public AuthUserUseCase(IRepository<UserEntity> userRepository, ILogger logger, IMapper mapper)
+        private readonly IAuthenticationService authenticationService;
+        private readonly IAuthorizationService authorizationService;
+         
+        public AuthUserUseCase(
+            IRepository<UserEntity> userRepository,
+            IAuthenticationService authenticationService,
+            IAuthorizationService authorizationService,
+            ILogger logger, 
+            IMapper mapper)
         {
             this.userRepository = userRepository;
             this.logger = logger;
             this.mapper = mapper;
+            this.authenticationService = authenticationService;
+            this.authorizationService = authorizationService;
         }
 
-        
-        [CachedMethod(minutes: 30)]
-        public UserModel? AuthUser(string apiKey, string[] requiredRoles)
+
+        [CachedMethod(minutes:10)]
+        public GenericResponse<UserModel?> Execute(string apiKey, string[] requiredRoles)
         {
+            var response = new GenericResponse<UserModel?>();
             
-            var user = userRepository.Query()
+            // 1. Authenticate user by apiKey    
+            if (!authenticationService.AuthenticateByApiKey(apiKey))
+            {                   
+                return response
+                    .WithMessage("Não foi possivel autenticar o usuário pela API KEY informada.")
+                    .WithFail();
+            }
+
+            // 2. Check user roles
+            if (!authorizationService.AuthorizeUserByApiKey(apiKey, requiredRoles))
+            {
+                return response
+                    .WithMessage("Usuário não possui permissões suficientes para prosseguir.")
+                    .WithFail(); 
+            }
+
+            var userEntity = userRepository
+                .Query()
                 .Where(p=>p.ApiKey == apiKey)
                 .FirstOrDefault();
 
-            if (user == null)
-            {
-                logger.LogWarning("Usuário não encontrado para a chave de API fornecida.");
-                return default;
-            }
-
-            if (requiredRoles == null || !requiredRoles.Any())
-            {
-                logger.LogInformation("Usuário autenticado com sucesso.");
-                return mapper.Map<UserModel>(user);
-            }
-
-            if (user.Roles == null || !user.Roles.Any())
-            {
-                logger.LogWarning("Usuário não possui nenhuma role atribuída.");
-                return null;
-            }
-
-            var hasRequiredRole = user.Roles
-                .Any(r => requiredRoles.Any(rr => rr.Equals(r, StringComparison.OrdinalIgnoreCase)));
-
-            if (!hasRequiredRole)
-            {
-                logger.LogWarning("Usuário não possui roles necessárias para utilizar o endpoint.");
-                return null;
-            }
-
-            logger.LogInformation("Usuário autenticado e autorizado com sucesso.");
-            return mapper.Map<UserModel>(user);
+            return response
+                .WithData(mapper.Map<UserModel>(userEntity))
+                .WithMessage("Usuário autenticado com sucesso.")
+                .WithSuccess();
+             
         }
     }
 }

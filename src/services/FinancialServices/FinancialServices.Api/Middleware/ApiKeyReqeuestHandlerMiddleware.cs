@@ -32,15 +32,16 @@ public class ApiKeyRequestHandlerMiddleware(RequestDelegate next)
         var apiKey = key.First()!;
         var requiredRoles = await GetRequiredRolesAsync(context, policyProvider);
 
-        var user = authUserUseCase.AuthUser(apiKey, requiredRoles);
+        var response = authUserUseCase.Execute(apiKey, requiredRoles);
 
-        if (user == null)
+        if (!response.Success)
         {
-            context.Response.StatusCode = 401;
-            await context.Response.WriteAsync("Unauthorized");
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsync(response.Message ?? string.Empty);
             return;
         }
 
+        var user = response.Data;
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),

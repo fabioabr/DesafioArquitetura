@@ -1,6 +1,6 @@
 db = db.getSiblingDB('FinancialDB');
 
-db.users.insertMany([
+db.Users.insertMany([
     {
         _id: UUID("40365e90-7821-4710-8743-9d4f80a6b442"),
         name: "API Empresa 1 User",

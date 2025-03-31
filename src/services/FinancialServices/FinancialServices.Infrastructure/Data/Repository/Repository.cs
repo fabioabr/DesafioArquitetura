@@ -6,13 +6,8 @@ namespace FinancialServices.Infrastructure.Data.Repository
     public class Repository<T> : IRepository<T> where T : IEntity
     {
         private readonly IDatabaseAdapter databaseAdapter;
-
-        protected Repository()
-        {
-            
-        }
-
-        protected Repository(IDatabaseAdapter databaseAdapter)
+         
+        public Repository(IDatabaseAdapter databaseAdapter)
         {
             this.databaseAdapter = databaseAdapter;
         }

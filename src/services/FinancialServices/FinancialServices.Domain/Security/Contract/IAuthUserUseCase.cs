@@ -1,15 +1,11 @@
 ﻿using FinancialServices.Domain.Security.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FinancialServices.Utils.Shared;
 
 namespace FinancialServices.Domain.Security.Contract
 {
     public interface IAuthUserUseCase
     {
-        UserModel? AuthUser(string apiKey, string[] requiredRoles);
+        GenericResponse<UserModel?> Execute(string apiKey, string[] requiredRoles);
 
     }
 }

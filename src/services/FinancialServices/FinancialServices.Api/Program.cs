@@ -3,11 +3,9 @@ using FinancialServices.Api.Configuration;
 var builder = WebApplication.CreateBuilder(args);
 
 builder
-
     .AddCustomApiConfiguration();
-  
-var app = builder.Build();
 
+var app = builder.Build();
 
 
 app.UseCustomApiConfiguration();

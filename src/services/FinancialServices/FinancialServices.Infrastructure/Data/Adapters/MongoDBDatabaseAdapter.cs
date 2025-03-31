@@ -1,4 +1,5 @@
-﻿using FinancialServices.Domain.Core.Contracts;
+﻿using FinancialServices.Domain.Core.Attributes;
+using FinancialServices.Domain.Core.Contracts;
 using FinancialServices.Infrastructure.Data.Contract;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -22,10 +23,10 @@ namespace FinancialServices.Infrastructure.Data.Adapters
         private IMongoCollection<T> GetCollection<T>() where T : IEntity
         {
             var type = typeof(T);
-            var tableAttr = type.GetCustomAttribute<TableAttribute>();
+            var tableAttr = type.GetCustomAttribute<EntitySetNameAttribute>();
 
             if (tableAttr == null)
-                throw new InvalidOperationException("TableAttribute is required for MongoDB collections");
+                throw new InvalidOperationException("EntitySetNameAttribute is required for MongoDB collections");
 
             var collectionNamespace =  tableAttr?.Name;
             return client.GetDatabase(databaseName).GetCollection<T>(collectionNamespace);
