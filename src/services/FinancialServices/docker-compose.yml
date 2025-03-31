@@ -2,54 +2,5 @@ services:
   financialservices.api:
     image: ${DOCKER_REGISTRY-}financialservicesapi
     build:
-      context: ../..
-      dockerfile: Services/FinancialServices/FinancialServices.Api/Dockerfile
-    ports:
-      - "8080:8080"
-      - "8081:8081"
-    environment:       
-      - ASPNETCORE_ENVIRONMENT=Development
-      - CustomSettings__ConnectionStrings__Default=mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin
-      - CustomSettings__DatabaseToUse=MongoDb 
-      - CustomSettings__DatabaseName=FinancialDB
-    depends_on:
-      - mongodb
-    networks:
-      - app-network
-
-  mongodb:
-    image: mongo:8
-    container_name: financialservices.mongodb
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin
-    volumes:
-      - mongodb-data:/data/db
-      - ../../database/seeds:/docker-entrypoint-initdb.d:ro
-    networks:
-      - app-network
-
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: financialservices.rabbitmq    
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_prometheus tcp_listener_port 15692"
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin      
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq      
-    networks:
-      - app-network
-
-volumes:
-  mongodb-data:
-  rabbitmq_data:
-
-networks:
-  app-network:
-    driver: bridge
+      context: .
+      dockerfile: FinancialServices.Api/Dockerfile

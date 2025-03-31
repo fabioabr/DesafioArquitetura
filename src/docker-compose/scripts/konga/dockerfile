@@ -1,0 +1,8 @@
+FROM pantsel/konga:latest
+
+USER root
+RUN apk add --no-cache netcat-openbsd
+
+COPY konga-bootstrap.sh /konga-bootstrap.sh
+
+ENTRYPOINT ["sh", "/konga-bootstrap.sh"]

@@ -1,0 +1,15 @@
+_format_version: "3.0"
+services:
+  - name: financial-api
+    url: http://financialservices.api:8080
+    routes:
+      - name: financial-api-route
+        paths:
+          - /api
+        strip_path: false
+        preserve_host: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 20
+          policy: local
