@@ -1,5 +1,6 @@
 ﻿services:
-  financialservices.api:
+  financialservices-api:
+    container_name: financialservices-api
     image: ${DOCKER_REGISTRY-}financialservicesapi
     build:
       context: ../
@@ -17,7 +18,7 @@
     networks:
       - app-network
 
-  mongodb:
+  mongodb:    
     image: mongo:8
     container_name: financialservices.mongodb
     ports:
@@ -27,7 +28,7 @@
       MONGO_INITDB_ROOT_PASSWORD: admin
     volumes:
       - mongodb-data:/data/db
-      - ../scripts/mongodb:/docker-entrypoint-initdb.d:ro
+      - ./scripts/mongodb:/docker-entrypoint-initdb.d:ro
     networks:
       - app-network
 
@@ -64,7 +65,8 @@
       dockerfile: ./docker-compose/scripts/kong/kong-bootstrap/Dockerfile
     container_name: kong-bootstrap
     depends_on:
-      - kong-database    
+      - kong-database
+    
     environment:
       KONG_DATABASE: postgres
       KONG_PG_HOST: kong-database
@@ -79,9 +81,9 @@
     restart: on-failure
     ports:
       - "8000:8000"
-      - "8001:8001"
+      - "8001:8001" # <-- Prometheus busca a porta 8001 para o Scraping
       - "8443:8443"
-      - "8444:8444"
+      - "8444:8444"      
     environment:
       KONG_DATABASE: postgres
       KONG_PG_HOST: kong-database
@@ -91,6 +93,8 @@
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_ADMIN_ERROR_LOG: /dev/stderr
       KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_PLUGINS: bundled,prometheus
+      KONG_PROMETHEUS_EXPORTER: on
     depends_on:
       - kong-database
       - kong-bootstrap
@@ -103,6 +107,7 @@
       dockerfile: ./docker-compose/scripts/kong/kong-deck/Dockerfile      
     container_name: kong-deck
     depends_on:
+      - financialservices-api
       - kong
     networks:
       - app-network
@@ -114,6 +119,8 @@
       POSTGRES_DB: konga
       POSTGRES_USER: konga
       POSTGRES_PASSWORD: konga
+    ports:
+      - "5433:5432"  # <--- exportando para visualizar os dados via Datagrip (Isso não é recomendado em ambientes reais)
     volumes:
       - konga-data:/var/lib/postgresql/data
     networks:
@@ -131,9 +138,35 @@
       DB_PORT: 5432
       DB_USER: konga
       DB_PASSWORD: konga
-      DB_DATABASE: konga
+      DB_DATABASE: konga 
     depends_on:
       - konga-database
+    networks:
+      - app-network
+ 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./scripts/grafana/provisioning:/etc/grafana/provisioning
+      - ./scripts/grafana/dashboards:/etc/grafana/dashboards
+    networks:
+      - app-network
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - prometheus-data:/prometheus
+      - ./scripts/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
     networks:
       - app-network
 
@@ -142,7 +175,10 @@ volumes:
   rabbitmq_data:
   kong-data:
   konga-data:
+  grafana-data:
+  prometheus-data:
 
 networks:
   app-network:
+    name: app-network
     driver: bridge

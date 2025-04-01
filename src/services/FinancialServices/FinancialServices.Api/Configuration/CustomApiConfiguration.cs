@@ -31,8 +31,7 @@ namespace FinancialServices.Api.Configuration
             app.UseCustomMiddlewares();
             app.UseCustomSwagger();
             app.UseCustomRedoc();
-            app.UseHttpsRedirection();
-            
+                        
             app.UseAuthentication();
             app.UseAuthorization();
             
