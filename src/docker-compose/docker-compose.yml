@@ -13,7 +13,7 @@
       - CustomSettings__DatabaseToUse=MongoDb
       - CustomSettings__EventBusToUse=RabbitMQ
             
-      - CustomSettings__Database__ConnectionStrings__Default=mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin 
+      - CustomSettings__Database__ConnectionStrings__Default=mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin       
       - CustomSettings__Database__DatabaseName=FinancialDB
       
       - CustomSettings__Observability_GrafanaLokiUrl=http://loki:3100

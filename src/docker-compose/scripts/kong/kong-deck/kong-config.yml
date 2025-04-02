@@ -3,21 +3,26 @@ services:
   - name: financial-api
     url: http://financialservices-api:8080/
     routes:
-      - name: financial-api-route
+      - name: create-transaction
         paths:
           - /financial
         strip_path: true
         preserve_host: false
         methods:
-          - GET
           - POST
-          - PUT
-          - DELETE
+      - name: get-report
+        paths:
+          - /reports
+        strip_path: true
+        preserve_host: false
+        methods:
+          - GET
     plugins:
       - name: rate-limiting
         config:
           minute: 20
           policy: local
+
       - name: prometheus
         enabled: true
         config:

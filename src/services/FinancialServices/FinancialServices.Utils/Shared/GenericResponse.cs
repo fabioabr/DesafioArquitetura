@@ -11,28 +11,31 @@ namespace FinancialServices.Utils.Shared
         public T? Data { get; set; } 
         public string? Message { get; set; }
         public bool Success { get; set; } = false;
+        public Exception? Exception { get; set; } 
 
         public GenericResponse<T> WithData(T data)
         {
             Data = data;
             return this;
         }
-
         public GenericResponse<T> WithMessage(string? message)
         {
             Message = message;
             return this;
         }
-
         public GenericResponse<T> WithSuccess()
         {
             Success = true;
             return this;
         }
-
         public GenericResponse<T> WithFail()
         {
             Success = false;
+            return this;
+        }
+        public GenericResponse<T> WithException(Exception ex)
+        {
+            Exception = ex;
             return this;
         }
 
@@ -43,23 +46,27 @@ namespace FinancialServices.Utils.Shared
         
         public string? Message { get; set; }
         public bool Success { get; set; } = false;
- 
 
+        public Exception? Exception { get; set; }
         public GenericResponse  WithMessage(string? message)
         {
             Message = message;
             return this;
         }
-
         public GenericResponse  WithSuccess()
         {
             Success = true;
             return this;
         }
-
         public GenericResponse  WithFail()
         {
             Success = false;
+            return this;
+        }
+
+        public GenericResponse WithException(Exception ex)
+        {
+            Exception = ex;
             return this;
         }
 

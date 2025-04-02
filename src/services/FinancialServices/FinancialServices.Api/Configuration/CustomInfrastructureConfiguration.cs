@@ -1,4 +1,5 @@
 ﻿using FinancialServices.Domain.Core.Contracts;
+using FinancialServices.Domain.Financial.Entity;
 using FinancialServices.Domain.Financial.Event;
 using FinancialServices.Domain.Financial.Model;
 using FinancialServices.Domain.Security.Entity;
@@ -48,7 +49,8 @@ namespace FinancialServices.Api.Configuration
 
             builder.Services.AddSingleton<IRepository<UserEntity>, Repository<UserEntity>>();
             builder.Services.AddSingleton<IRepository<TransactionEntity>, Repository<TransactionEntity>>();
-
+            builder.Services.AddSingleton<IRepository<ConsolidatedReportEntity>, Repository<ConsolidatedReportEntity>>();
+           
             return builder;
         }
 
