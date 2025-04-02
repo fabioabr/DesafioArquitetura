@@ -5,6 +5,7 @@ using FinancialServices.Domain.Financial.Entity;
 using FinancialServices.Domain.Financial.Model;
 using FinancialServices.Utils.Cache;
 using FinancialServices.Utils.Shared;
+using System.Reflection;
 
 namespace FinancialServices.Application.Financial.UseCase
 {
@@ -20,7 +21,7 @@ namespace FinancialServices.Application.Financial.UseCase
         }
 
         [CachedMethod(minutes: 20)]
-        public GenericResponse<ConsolidatedReportModel> GetConsolidatedReport(DateTime date)
+        public GenericResponse<ConsolidatedReportModel> GetConsolidatedReport(DateTime date, int timezoneOffset)
         {
 
             if (date.ToUniversalTime().Date > DateTime.UtcNow.Date)
@@ -35,7 +36,7 @@ namespace FinancialServices.Application.Financial.UseCase
             // Tenta obter o report da data informada no parametro
             var report = consolidatedReportModelRepository
                 .Query()
-                .Where(x => x.Date == date.Date)
+                .Where(x => x.Date == date.Date && x.TimezoneOffset == timezoneOffset)
                 .FirstOrDefault();
              
             if (report == null)
@@ -48,12 +49,46 @@ namespace FinancialServices.Application.Financial.UseCase
 
             }
 
-            return new GenericResponse<ConsolidatedReportModel>()
-            {
-                Data = mapper.Map<ConsolidatedReportModel>(report),
-                Success = true
-            };
+            return new GenericResponse<ConsolidatedReportModel>()                  
+                  .WithData(mapper.Map<ConsolidatedReportModel>(report))
+                  .WithSuccess();
              
+        }
+
+        
+        public GenericResponse InvalidateReportCache(DateTime date, int timezoneOffset, bool revalidate)
+        {
+            Type typeOfMe = this.GetType();
+
+            MethodInfo methodInfo = typeOfMe.GetMethod("GetConsolidatedReport", new Type[] { typeof(DateTime), typeof(int) });
+
+            if (methodInfo != null)
+            {
+                try
+                {
+                    var key = CacheAspect.GenerateCacheKey(methodInfo, new object[] { date, timezoneOffset });
+                    MethodBase methodBase = methodInfo;
+                    CacheAspect.Cache.Invalidate(key);
+
+                    if (revalidate)
+                        GetConsolidatedReport(date, timezoneOffset);
+
+                }
+                catch (Exception ex)
+                {
+                    return new GenericResponse()
+                        .WithMessage(ex.Message)
+                        .WithException(ex)
+                        .WithFail();
+
+                }
+
+            }
+
+            return new GenericResponse()
+                .WithSuccess();
+
+
         }
     }
 }

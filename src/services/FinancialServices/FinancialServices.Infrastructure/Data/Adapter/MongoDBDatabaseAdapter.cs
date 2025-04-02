@@ -1,10 +1,12 @@
 ﻿using FinancialServices.Domain.Core.Attributes;
 using FinancialServices.Domain.Core.Contracts;
+using FinancialServices.Domain.Financial.Model;
 using FinancialServices.Infrastructure.Data.Contract;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
+using System.Transactions;
 
 namespace FinancialServices.Infrastructure.Data.Adapter
 {
@@ -60,7 +62,7 @@ namespace FinancialServices.Infrastructure.Data.Adapter
 
             // No caso do metodo genérico de Update, o MongoDB irá substituir o registro completo, o que pode ser um problema quando
             // estivermos enfrentando concorrencia de updates. Neste caso, seria melhor utilizar o método ReplaceOneAsync, que permite
-            // a atualização de campos específicos. E é seguro para concorrência.
+            // a atualizção de campos específicos. E é seguro para concorrência.
 
             // Para resolver este problema, podemos criar um novo método UpdateAsync que aceita um objeto com os campos a serem atualizados
             // e utiliza o método ReplaceOneAsync para atualizar apenas os campos necessários.
@@ -75,8 +77,19 @@ namespace FinancialServices.Infrastructure.Data.Adapter
             await GetCollection<T>().UpdateOneAsync(filter, update);
 
         }
-  
+        public async Task InsertOrUpdate<T>(T entity) where T : IEntity
+        {
+            // Este metodo diferentemente do outro, faz o replace do registro no banco.
+            // Se o registro não existir, ele será criado.
 
-       
+            var filter = Builders<T>.Filter.Eq(t => t.Id, entity.Id);
+
+            var options = new ReplaceOptions { IsUpsert = true };
+            
+            await GetCollection<T>().ReplaceOneAsync(filter, entity, options);
+
+        }
+
+
     }
 }

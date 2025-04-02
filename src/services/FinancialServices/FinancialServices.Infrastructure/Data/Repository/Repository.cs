@@ -19,6 +19,12 @@ namespace FinancialServices.Infrastructure.Data.Repository
         {
             return databaseAdapter.AddRangeAsync(entities);
         }
+
+        public Task InsertOrUpdate(T entity)
+        {
+            return databaseAdapter.InsertOrUpdate(entity);
+        }
+
         public IQueryable<T> Query()
         {
             return databaseAdapter.Query<T>();

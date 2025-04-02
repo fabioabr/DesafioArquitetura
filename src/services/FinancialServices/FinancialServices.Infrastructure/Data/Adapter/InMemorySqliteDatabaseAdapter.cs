@@ -15,6 +15,11 @@ namespace FinancialServices.Infrastructure.Data.Adapter
             throw new NotImplementedException();
         }
 
+        public Task InsertOrUpdate<T>(T entity) where T : IEntity
+        {
+            throw new NotImplementedException();
+        }
+
         public IQueryable<T> Query<T>() where T : IEntity
         {
             throw new NotImplementedException();

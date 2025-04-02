@@ -8,7 +8,7 @@
         Task UpdateAsync(T entity, object updateFields);
         Task RemoveAsync(T entity);
         Task RemoveRangeAsync(IEnumerable<T> entities);
-
+        Task InsertOrUpdate(T entity);
     }
 
 }

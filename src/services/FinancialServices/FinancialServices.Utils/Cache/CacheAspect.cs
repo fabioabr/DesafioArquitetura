@@ -6,7 +6,8 @@ namespace FinancialServices.Utils.Cache
     [Aspect(Scope.Global)]   
     public class CacheAspect
     {
-        private static readonly IInMemoryCacheService _cache = new InMemoryCacheService();
+         
+        public static readonly IInMemoryCacheService Cache = new InMemoryCacheService();
 
         [Advice(Kind.Around, Targets = Target.Method)]
         public object HandleMethod(
@@ -15,15 +16,20 @@ namespace FinancialServices.Utils.Cache
             [Argument(Source.Metadata)] MethodBase methodInfo)
         {
             var attr = methodInfo.GetCustomAttribute<CachedMethodAttribute>()!;
-            var key = $"{methodInfo!.DeclaringType!.FullName}.{methodInfo.Name}:{string.Join("_", args.Select(a => a?.ToString()))}";
+            var key = CacheAspect.GenerateCacheKey(methodInfo, args);
 
-            if (_cache.TryGet(key, out var cached))
+            if (Cache.TryGet(key, out var cached))
                 return cached;
 
             var result = method(args);
 
-            _cache.Set(key, result, attr.Duration);
+            Cache.Set(key, result, attr.Duration);
             return result;
+        }
+
+        public static string GenerateCacheKey(MethodBase methodInfo, object[] args)
+        {
+            return $"{methodInfo!.DeclaringType!.FullName}.{methodInfo.Name}:{string.Join("_", args.Select(a => a?.ToString()))}";
         }
     }
 }

@@ -15,7 +15,10 @@ namespace FinancialServices.Domain.Financial.Entity
         public Guid Id { get; set; } = Guid.NewGuid();
         public DateTime CreatedAt { get; set; }
         public DateTime Date { get; set; }
+        public int TimezoneOffset { get; set; } = 0;
         public List<ConsolidatedReportItemModel> Items { get; set; } = [];
+
         
+
     }
 }

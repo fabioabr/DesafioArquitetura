@@ -38,19 +38,18 @@ namespace FinancialServices.Application.Financial.UseCase
 
                 transactionModelEventPublisher.Publish(mapper.Map<TransactionCreatedEventModel>(transaction));
 
-                return new GenericResponse<TransactionModel?>
-                {
-                    Success = true,
-                    Data = transaction,                    
-                };
+                return new GenericResponse<TransactionModel?>()
+                    .WithData(transaction)
+                    .WithSuccess();
+                
             }
             catch(Exception ex)
             {
-                return new GenericResponse<TransactionModel?> { 
-                    Success = false,
-                    Data = transaction,
-                    Message = ex.Message                 
-                };
+                return new GenericResponse<TransactionModel?>()
+                .WithData(transaction)
+                .WithMessage(ex.Message)
+                .WithException(ex);
+
             }
 
         }

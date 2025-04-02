@@ -9,10 +9,9 @@ using System.Threading.Tasks;
 
 namespace FinancialServices.Domain.Financial.Contract
 {
-    public interface IGetConsolidatedReportUseCase
+    public interface ICreateConsolidatedReportsUseCase
     {
-        GenericResponse<ConsolidatedReportModel> GetConsolidatedReport (DateTime date, int timezoneOffset);
-
-        GenericResponse InvalidateReportCache(DateTime date, int timezoneOffset, bool revalidate);
+        GenericResponse CreateConsolidatedReport(int timezoneOffset);
+         
     }
 }
