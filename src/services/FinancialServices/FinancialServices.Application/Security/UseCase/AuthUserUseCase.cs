@@ -39,17 +39,19 @@ namespace FinancialServices.Application.Security.UseCase
             
             // 1. Authenticate user by apiKey    
             if (!authenticationService.AuthenticateByApiKey(apiKey))
-            {                   
+            {                                   
                 return response
                     .WithMessage("Não foi possivel autenticar o usuário pela API KEY informada.")
                     .WithFail();
             }
 
             // 2. Check user roles
-            if (!authorizationService.AuthorizeUserByApiKey(apiKey, requiredRoles))
+            var authorizationResult = authorizationService.AuthorizeUserByApiKey(apiKey, requiredRoles);
+
+            if (!authorizationResult.Success)
             {
                 return response
-                    .WithMessage("Usuário não possui permissões suficientes para prosseguir.")
+                    .WithMessage(authorizationResult.Message)
                     .WithFail(); 
             }
 
@@ -60,7 +62,7 @@ namespace FinancialServices.Application.Security.UseCase
 
             return response
                 .WithData(mapper.Map<UserModel>(userEntity))
-                .WithMessage("Usuário autenticado com sucesso.")
+                .WithMessage("User Authenticated!")
                 .WithSuccess();
              
         }

@@ -1,4 +1,4 @@
-﻿using FinancialServices.Infrastructure.Enum;
+﻿using FinancialServices.Infrastructure.Enums;
 
 namespace FinancialServices.Api.Model
 {

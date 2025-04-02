@@ -1,10 +1,10 @@
-﻿using FinancialServices.Infrastructure.Enum;
+﻿using FinancialServices.Infrastructure.Enums;
 
 namespace FinancialServices.Infrastructure.Data.Contract
 {
     public interface IDatabaseAdapterFactory
     {
-        IDatabaseAdapter CreateDatabaseAdapter(DatabaseTypeEnum databaseType,string connectionString, string databaseName);
+        IDatabaseAdapter CreateDatabaseAdapter(DatabaseTypeEnum databaseType);
 
     }
 }

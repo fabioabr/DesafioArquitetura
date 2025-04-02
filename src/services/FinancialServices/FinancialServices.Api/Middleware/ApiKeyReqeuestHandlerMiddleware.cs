@@ -10,13 +10,13 @@ public class ApiKeyRequestHandlerMiddleware(RequestDelegate next)
     private const string APIKEY_HEADER = "x-api-key";
     private readonly RequestDelegate _next = next;
 
-    public async Task InvokeAsync(HttpContext context, IAuthUserUseCase authUserUseCase, IAuthorizationPolicyProvider policyProvider)
+    public async Task InvokeAsync(HttpContext context, IAuthUserUseCase authUserUseCase, IAuthorizationPolicyProvider policyProvider, ILogger logger)
     {
         var path = context.Request.Path.Value;
 
         // Ignora autenticação para rotas fora do /api
         if (!path.StartsWith("/api", StringComparison.OrdinalIgnoreCase))
-        {
+        {            
             await _next(context);
             return;
         }
@@ -36,6 +36,7 @@ public class ApiKeyRequestHandlerMiddleware(RequestDelegate next)
 
         if (!response.Success)
         {
+            logger.LogWarning("{Message} - API-KEY : {Apikey}...", response.Message, apiKey.Substring(0,10) );
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             await context.Response.WriteAsync(response.Message ?? string.Empty);
             return;
@@ -56,6 +57,7 @@ public class ApiKeyRequestHandlerMiddleware(RequestDelegate next)
         }
 
         context.User = new ClaimsPrincipal(new ClaimsIdentity(claims, "ApiKey"));
+
         await _next(context);
     }
 

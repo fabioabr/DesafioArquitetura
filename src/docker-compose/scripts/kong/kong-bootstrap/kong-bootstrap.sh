@@ -2,7 +2,7 @@
 
 echo "⏳ Aguardando o banco kong-database ficar pronto..."
 
-until pg_isready -h kong-database -p 5432 -U kong; do
+until pg_isready -h kong-db -p 5432 -U kong; do
   echo "⏳ Esperando o banco de dados estar 100% pronto..."
   sleep 2
 done

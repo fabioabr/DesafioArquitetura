@@ -1,5 +1,5 @@
 ﻿using FinancialServices.Api.Model;
-using FinancialServices.Infrastructure.Enum;
+using FinancialServices.Infrastructure.Enums;
 
 namespace FinancialServices.Api.Configuration
 {

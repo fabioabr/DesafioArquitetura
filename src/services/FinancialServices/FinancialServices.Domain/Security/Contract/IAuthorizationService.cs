@@ -1,4 +1,5 @@
 ﻿using FinancialServices.Domain.Security.Model;
+using FinancialServices.Utils.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace FinancialServices.Domain.Security.Contract
 {
     public interface IAuthorizationService
     {
-        bool AuthorizeUserByApiKey(string apiKey, string[] requiredRoles);
+        GenericResponse AuthorizeUserByApiKey(string apiKey, string[] requiredRoles);
 
     }
 }

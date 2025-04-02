@@ -2,11 +2,13 @@
 using FinancialServices.Api.Contract;
 using FinancialServices.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace FinancialServices.Api.Configuration
 {
@@ -15,15 +17,22 @@ namespace FinancialServices.Api.Configuration
 
         public static WebApplicationBuilder AddCustomApiConfiguration(this WebApplicationBuilder builder)
         {
+
+            builder.Services.Configure<JsonOptions>(options =>
+            {
+                options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
+
             return builder
                 .AddCustomApplicationSettingsConfiguration()
-                .AddCustomLoggerConfiguration()
+                .AddCustomLoggingConfiguration()
                 .AddCustomMappingConfiguration()
                 .AddEndpointDocuments()
                 .AddSecurityConfiguration()
                 .AddCustomApplicationConfiguration()
                 .AddCustomInfrastructureConfiguration()                
                 ;
+
         }
         public static WebApplication UseCustomApiConfiguration(this WebApplication app)
         {

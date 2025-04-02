@@ -18,7 +18,7 @@ namespace FinancialServices.Utils.Shared
             return this;
         }
 
-        public GenericResponse<T> WithMessage(string message)
+        public GenericResponse<T> WithMessage(string? message)
         {
             Message = message;
             return this;
@@ -38,5 +38,31 @@ namespace FinancialServices.Utils.Shared
 
     }
 
-     
+    public class GenericResponse 
+    {
+        
+        public string? Message { get; set; }
+        public bool Success { get; set; } = false;
+ 
+
+        public GenericResponse  WithMessage(string? message)
+        {
+            Message = message;
+            return this;
+        }
+
+        public GenericResponse  WithSuccess()
+        {
+            Success = true;
+            return this;
+        }
+
+        public GenericResponse  WithFail()
+        {
+            Success = false;
+            return this;
+        }
+
+    }
+
 }

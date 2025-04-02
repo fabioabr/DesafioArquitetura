@@ -10,9 +10,19 @@
       - "8081:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - CustomSettings__ConnectionStrings__Default=mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin
       - CustomSettings__DatabaseToUse=MongoDb
-      - CustomSettings__DatabaseName=FinancialDB
+      - CustomSettings__EventBusToUse=RabbitMQ
+            
+      - CustomSettings__Database__ConnectionStrings__Default=mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin 
+      - CustomSettings__Database__DatabaseName=FinancialDB
+      
+      - CustomSettings__Observability_GrafanaLokiUrl=http://loki:3100
+      
+      - CustomSettings__EventBus__RabbitMQ__HostName=rabbitmq
+      - CustomSettings__EventBus__RabbitMQ__Port=5672
+      - CustomSettings__EventBus__RabbitMQ__User=admin
+      - CustomSettings__EventBus__RabbitMQ__Password=admin
+      - CustomSettings__EventBus__RabbitMQ__ExchangeType=topic
     depends_on:
       - mongodb
     networks:
@@ -20,7 +30,7 @@
 
   mongodb:    
     image: mongo:8
-    container_name: financialservices.mongodb
+    container_name: mongodb
     ports:
       - "27017:27017"
     environment:
@@ -34,7 +44,7 @@
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: financialservices.rabbitmq
+    container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -47,9 +57,9 @@
     networks:
       - app-network
 
-  kong-database:
+  kong-db:
     image: postgres:13
-    container_name: kong-database
+    container_name: kong-db
     environment:
       POSTGRES_DB: kong
       POSTGRES_USER: kong
@@ -60,16 +70,15 @@
       - app-network
 
   kong-bootstrap:
+    container_name: kong-bootstrap  
     build:
       context: ../
-      dockerfile: ./docker-compose/scripts/kong/kong-bootstrap/Dockerfile
-    container_name: kong-bootstrap
+      dockerfile: ./docker-compose/scripts/kong/kong-bootstrap/Dockerfile    
     depends_on:
-      - kong-database
-    
+      - kong-db    
     environment:
       KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-database
+      KONG_PG_HOST: kong-db
       KONG_PG_USER: kong
       KONG_PG_PASSWORD: kong
     networks:
@@ -86,7 +95,7 @@
       - "8444:8444"      
     environment:
       KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-database
+      KONG_PG_HOST: kong-db
       KONG_PG_PASSWORD: kong
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
@@ -96,25 +105,25 @@
       KONG_PLUGINS: bundled,prometheus
       KONG_PROMETHEUS_EXPORTER: on
     depends_on:
-      - kong-database
+      - kong-db
       - kong-bootstrap
     networks:
       - app-network
 
   kong-deck:
+    container_name: kong-deck
     build:
       context: ../
       dockerfile: ./docker-compose/scripts/kong/kong-deck/Dockerfile      
-    container_name: kong-deck
     depends_on:
       - financialservices-api
       - kong
     networks:
       - app-network
 
-  konga-database:
-    image: postgres:11
+  konga-db:
     container_name: konga-db
+    image: postgres:11
     environment:
       POSTGRES_DB: konga
       POSTGRES_USER: konga
@@ -127,26 +136,26 @@
       - app-network
 
   konga:
+    container_name: konga
     build:
       context: ./scripts/konga
-    container_name: konga
     ports:
       - "1337:1337"
     environment:
       DB_ADAPTER: postgres
-      DB_HOST: konga-database
+      DB_HOST: konga-db
       DB_PORT: 5432
       DB_USER: konga
       DB_PASSWORD: konga
       DB_DATABASE: konga 
     depends_on:
-      - konga-database
+      - konga-db
     networks:
       - app-network
  
   grafana:
-    image: grafana/grafana:latest
     container_name: grafana
+    image: grafana/grafana:latest
     ports:
       - "3000:3000"
     volumes:
@@ -160,8 +169,8 @@
       - GF_SECURITY_ADMIN_PASSWORD=admin
       
   prometheus:
-    image: prom/prometheus:latest
     container_name: prometheus
+    image: prom/prometheus:latest
     volumes:
       - prometheus-data:/prometheus
       - ./scripts/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
@@ -169,7 +178,18 @@
       - "9090:9090"
     networks:
       - app-network
-
+      
+  loki:
+    container_name: loki
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yml     
+    volumes:
+      - ./scripts/loki/local-config.yml:/etc/loki/local-config.yml
+    networks:
+      - app-network
+  
 volumes:
   mongodb-data:
   rabbitmq_data:

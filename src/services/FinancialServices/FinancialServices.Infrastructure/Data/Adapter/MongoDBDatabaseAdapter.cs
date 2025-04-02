@@ -6,7 +6,7 @@ using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
-namespace FinancialServices.Infrastructure.Data.Adapters
+namespace FinancialServices.Infrastructure.Data.Adapter
 {
     public class MongoDBDatabaseAdapter : IDatabaseAdapter
     {

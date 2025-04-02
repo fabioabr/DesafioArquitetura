@@ -10,11 +10,16 @@
     <PackageReference Include="AspectInjector" Version="2.8.2" />
     <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FinancialServices.Domain\FinancialServices.Domain.csproj" />
     <ProjectReference Include="..\FinancialServices.Utils\FinancialServices.Utils.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Security\Mapper\" />
   </ItemGroup>
 
 </Project>

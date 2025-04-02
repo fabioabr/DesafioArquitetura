@@ -1,7 +1,7 @@
 ﻿using FinancialServices.Domain.Core.Contracts;
 using FinancialServices.Infrastructure.Data.Contract;
 
-namespace FinancialServices.Infrastructure.Data.Adapters
+namespace FinancialServices.Infrastructure.Data.Adapter
 {
     public class InMemorySqliteDatabaseAdapter : IDatabaseAdapter
     {

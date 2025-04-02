@@ -1,6 +1,4 @@
-﻿using FinancialServices.Api.Model;
-using FinancialServices.Infrastructure.Enum;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace FinancialServices.Api.Configuration
 {

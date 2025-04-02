@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinancialServices.Infrastructure.Enum
+namespace FinancialServices.Infrastructure.Enums
 {
     public enum DatabaseTypeEnum
     {
