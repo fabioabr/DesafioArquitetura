@@ -48,7 +48,7 @@ namespace FinancialServices.Application.Financial.UseCase
                 {
                     var groups = transactionRepository
                         .Query()
-                        .Where(x => x.Timestamp.Date >= lastReportDate.Date) // Todas as transações a partir da ultima data do ultimo report ou todas se for o 1º report                        
+                        .Where(x => x.Timestamp >= lastReportDate.Date) // Todas as transações a partir da ultima data do ultimo report ou todas se for o 1º report                        
                         .GroupBy(x => new { Period = new DateTime(x.Timestamp.Year, x.Timestamp.Month, x.Timestamp.Day, x.Timestamp.Hour, 0, 0), x.Type })
                         .Select(x => new
                         {

@@ -11,15 +11,11 @@ namespace FinancialServices.Api.Utils.Seed
         
         private static readonly Random _random = new Random();
          
-        public static async Task GenerateDailyTransactions(DateTime date , TransactionEntityGeneratorRequest options, WebApplication app)
+        public static void GenerateDailyTransactions(DateTime date , TransactionEntityGeneratorRequest options, WebApplication app)
         {
             var transactionRepository = app.Services.GetRequiredService<IRepository<TransactionEntity>>();
 
-            // Se ja existe registro no banco nao efetua a criação dos registros
-            if (transactionRepository.Query().Any())
-                await Task.CompletedTask;
-             
-
+            
             date = date.Date;
 
             if (options.PeakMomentTransactionCreationFactor + options.EasyMomentTransactionCreationFactor > 100)
@@ -131,25 +127,11 @@ namespace FinancialServices.Api.Utils.Seed
                 .ThenBy(x=> x.Type)
                 .ToList();
 
-             
-            
-         
-            // Se ja existe as transações para o dia, remove todas
-            var existingTransactions = transactionRepository.Query().Where(x => x.Timestamp.Date == date).ToList();
-         
-            if (existingTransactions.Any())
-                await transactionRepository.RemoveRangeAsync(existingTransactions);
-
+          
             // Adiciona as novas transações
-            await transactionRepository.AddRangeAsync(records);
+            transactionRepository.AddRangeAsync(records).Wait();
             
-            // Cria o relatório
-            var createConsolidatedReportsUseCase = app.Services.GetRequiredService<ICreateConsolidatedReportsUseCase>();
-
-            // Cria os grupos
-            createConsolidatedReportsUseCase.CreateTransactionGroups([TimeZoneInfo.Utc, TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo")]);
-             
-            await Task.CompletedTask;
+                      
         }
          
         public enum MomentTypeEnum

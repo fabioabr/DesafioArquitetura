@@ -36,6 +36,7 @@ namespace FinancialServices.Api.Endpoints.V1.Transaction
                         return Results.Problem(r.Message);
                     }
 
+
                     return Results.Ok(r.Data);
 
                 }
@@ -50,7 +51,7 @@ namespace FinancialServices.Api.Endpoints.V1.Transaction
 
             })
                 .RequireAuthorization("PremiumUsers")
-                .Produces(StatusCodes.Status200OK)
+                .Produces<List<TransactionGroupingModel>>(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status400BadRequest)
                 .Produces(StatusCodes.Status500InternalServerError)
                 ;

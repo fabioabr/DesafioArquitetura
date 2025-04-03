@@ -2,6 +2,9 @@
 using FinancialServices.Api.Contract;
 using FinancialServices.Api.Middleware;
 using FinancialServices.Api.Utils.Seed;
+using FinancialServices.Domain.Core.Contracts;
+using FinancialServices.Domain.Financial.Contract;
+using FinancialServices.Domain.Financial.Model;
 using FinancialServices.Domain.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
@@ -33,7 +36,7 @@ namespace FinancialServices.Api.Configuration
                 .AddEndpointDocuments()
                 .AddSecurityConfiguration()
                 .AddCustomApplicationConfiguration()
-                .AddCustomInfrastructureConfiguration()  
+                .AddCustomInfrastructureConfiguration()
                 .AddCustomJobRunningConfiguration()
                 ;
 
@@ -42,8 +45,8 @@ namespace FinancialServices.Api.Configuration
         {
             app.UseApplicationEndpoints();
             app.UseCustomMiddlewares();
-            app.UseCustomSwagger();            
-                        
+            app.UseCustomSwagger();
+
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -56,7 +59,7 @@ namespace FinancialServices.Api.Configuration
             }
 
             return app;
-        }         
+        }
         private static WebApplicationBuilder AddEndpointDocuments(this WebApplicationBuilder builder)
         {
             builder.Services.AddEndpointsApiExplorer();
@@ -75,19 +78,19 @@ namespace FinancialServices.Api.Configuration
             });
 
             return builder;
-        }        
+        }
         private static WebApplicationBuilder AddSecurityConfiguration(this WebApplicationBuilder builder)
         {
             builder.Services.AddAuthentication();
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("PremiumUsers", policy =>
-                    policy.RequireRole("credito","debito")); 
+                    policy.RequireRole("credito", "debito"));
             });
 
             return builder;
         }
-        
+
         private static WebApplication UseApplicationEndpoints(this WebApplication app)
         {
 
@@ -121,8 +124,8 @@ namespace FinancialServices.Api.Configuration
                             groupBuilders
                                 .Add(groupPath, app
                                     .MapGroup(groupPath)
-                                    //.WithTags($"{routeGroupName} - {version}")
-                                    
+                            //.WithTags($"{routeGroupName} - {version}")
+
                             );
 
                         endpoint
@@ -156,7 +159,7 @@ namespace FinancialServices.Api.Configuration
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                
+
                 app.UseSwaggerUI(options =>
                 {
                     options.SwaggerEndpoint("/swagger/v1/swagger.json", "FinancialServices API v1");
@@ -166,7 +169,7 @@ namespace FinancialServices.Api.Configuration
             }
 
             return app;
-        }        
+        }
         private static WebApplication UseCustomMiddlewares(this WebApplication app)
         {
             app.UseMiddleware<ApiKeyRequestHandlerMiddleware>();
@@ -174,26 +177,49 @@ namespace FinancialServices.Api.Configuration
         }
 
 
-        private static void UseDevelopmentSeed(this WebApplication app) 
+        private static void UseDevelopmentSeed(this WebApplication app)
         {
+            var transactionRepository = app.Services.GetRequiredService<IRepository<TransactionEntity>>();
 
-            TransactionEntityGenerator.GenerateDailyTransactions(DateTime.UtcNow.AddDays(-5), new TransactionEntityGeneratorRequest()
+            // Se ja existe registro no banco nao efetua a criação dos registros
+            if (transactionRepository.Query().Any())
+                return;
+
+
+            var days = Enumerable
+                .Range(0, 5)
+                .Select(p => DateTime.UtcNow.AddDays(p * -1).Date)
+                .OrderBy(p => p)
+                .ToList()
+                ;
+
+            foreach (var dt in days)
             {
-                EasyMomentTransactionCreationFactor = 10, // 20% do total de transações do dia
-                EasyBorderDurationFactor = 20, // 70% do tempo do Momento calmo é transição da borda do momento
-                EasyBorderMomentTransactionCreationFactor = 60, // 70% do total de transações do periodo calmo    
-                EasyMomentStart = new TimeSpan(2, 0, 0), // Horário de início do momento calmo (incluindo a borda)
-                EasyMomentEnd = new TimeSpan(9, 30, 0), // Horário de término do momento calmo (incluindo a borda)
+                TransactionEntityGenerator.GenerateDailyTransactions(dt, new TransactionEntityGeneratorRequest()
+                {
+                    EasyMomentTransactionCreationFactor = 10, // 20% do total de transações do dia
+                    EasyBorderDurationFactor = 20, // 70% do tempo do Momento calmo é transição da borda do momento
+                    EasyBorderMomentTransactionCreationFactor = 60, // 70% do total de transações do periodo calmo    
+                    EasyMomentStart = new TimeSpan(2, 0, 0), // Horário de início do momento calmo (incluindo a borda)
+                    EasyMomentEnd = new TimeSpan(9, 30, 0), // Horário de término do momento calmo (incluindo a borda)
 
-                PeakMomentTransactionCreationFactor = 50, // 50% do total de transações do dia
-                PeakBorderDurationFactor = 20, // 20% do tempo do Momento de pico é transição da borda do momento
-                PeakBorderMomentTransactionCreationFactor = 35, // 20% do total de transações do periodo de pico
-                PeakMomentStart = new TimeSpan(18, 15, 0), // Horário de início do momento de pico (incluindo a borda)
-                PeakMomentEnd = new TimeSpan(22, 0, 0), // Horário de término do momento de pico (incluindo a borda)
+                    PeakMomentTransactionCreationFactor = 50, // 50% do total de transações do dia
+                    PeakBorderDurationFactor = 20, // 20% do tempo do Momento de pico é transição da borda do momento
+                    PeakBorderMomentTransactionCreationFactor = 35, // 20% do total de transações do periodo de pico
+                    PeakMomentStart = new TimeSpan(18, 15, 0), // Horário de início do momento de pico (incluindo a borda)
+                    PeakMomentEnd = new TimeSpan(22, 0, 0), // Horário de término do momento de pico (incluindo a borda)
 
-                TransactionCountAvgPerMinute = 30 // Média de 30 transações por minuto
+                    TransactionCountAvgPerMinute = 30 // Média de 30 transações por minuto
 
-            }, app).Wait();
+                }, app);
+            }
+
+            // Cria o relatório
+            var createConsolidatedReportsUseCase = app.Services.GetRequiredService<ICreateConsolidatedReportsUseCase>();
+
+            // Cria os grupos
+            createConsolidatedReportsUseCase.CreateTransactionGroups([TimeZoneInfo.Utc, TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo")]);
+
 
         }
 
