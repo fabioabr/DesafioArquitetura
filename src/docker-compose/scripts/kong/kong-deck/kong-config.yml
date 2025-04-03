@@ -20,7 +20,7 @@ services:
     plugins:
       - name: rate-limiting
         config:
-          minute: 20
+          minute: 50
           policy: local
 
       - name: prometheus

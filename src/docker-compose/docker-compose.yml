@@ -7,15 +7,16 @@
       dockerfile: ./services/FinancialServices/FinancialServices.Api/Dockerfile
     ports:
       - "8080:8080"
-      - "8081:8081"    
+      - "8081:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
       - mongodb
+      - rabbitmq
     networks:
       - app-network
 
-  mongodb:    
+  mongodb:
     image: mongo:8
     container_name: mongodb
     ports:
@@ -29,16 +30,31 @@
     networks:
       - app-network
 
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.44.0
+    container_name: mongodb-exporter
+    ports:
+      - "9216:9216"
+    environment:
+      MONGODB_URI: mongodb://admin:admin@mongodb:27017/admin
+    command: 
+      - "--compatible-mode"
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
+      - "15692:15692"
     environment:
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_prometheus tcp_listener_port 15692"
       RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_DEFAULT_PASS: admin      
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
@@ -57,12 +73,12 @@
       - app-network
 
   kong-bootstrap:
-    container_name: kong-bootstrap  
+    container_name: kong-bootstrap
     build:
       context: ../
-      dockerfile: ./docker-compose/scripts/kong/kong-bootstrap/Dockerfile    
+      dockerfile: ./docker-compose/scripts/kong/kong-bootstrap/Dockerfile
     depends_on:
-      - kong-db    
+      - kong-db
     environment:
       KONG_DATABASE: postgres
       KONG_PG_HOST: kong-db
@@ -77,9 +93,9 @@
     restart: on-failure
     ports:
       - "8000:8000"
-      - "8001:8001" # <-- Prometheus busca a porta 8001 para o Scraping
+      - "8001:8001"
       - "8443:8443"
-      - "8444:8444"      
+      - "8444:8444"
     environment:
       KONG_DATABASE: postgres
       KONG_PG_HOST: kong-db
@@ -101,7 +117,7 @@
     container_name: kong-deck
     build:
       context: ../
-      dockerfile: ./docker-compose/scripts/kong/kong-deck/Dockerfile      
+      dockerfile: ./docker-compose/scripts/kong/kong-deck/Dockerfile
     depends_on:
       - financialservices-api
       - kong
@@ -116,7 +132,7 @@
       POSTGRES_USER: konga
       POSTGRES_PASSWORD: konga
     ports:
-      - "5433:5432"  # <--- exportando para visualizar os dados via Datagrip (Isso não é recomendado em ambientes reais)
+      - "5433:5432"
     volumes:
       - konga-data:/var/lib/postgresql/data
     networks:
@@ -134,12 +150,12 @@
       DB_PORT: 5432
       DB_USER: konga
       DB_PASSWORD: konga
-      DB_DATABASE: konga 
+      DB_DATABASE: konga
     depends_on:
       - konga-db
     networks:
       - app-network
- 
+
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
@@ -154,7 +170,7 @@
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
-      
+
   prometheus:
     container_name: prometheus
     image: prom/prometheus:latest
@@ -165,18 +181,18 @@
       - "9090:9090"
     networks:
       - app-network
-      
+
   loki:
     container_name: loki
     image: grafana/loki:latest
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yml     
+    command: -config.file=/etc/loki/local-config.yml
     volumes:
       - ./scripts/loki/local-config.yml:/etc/loki/local-config.yml
     networks:
       - app-network
-  
+
 volumes:
   mongodb-data:
   rabbitmq_data:
