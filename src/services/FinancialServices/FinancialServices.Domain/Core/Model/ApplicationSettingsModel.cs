@@ -8,7 +8,8 @@ namespace FinancialServices.Domain.Model
         public bool UseReportEndpoints { get; set; } = true;
         public bool UseConsolidationReportJob { get; set; } = true;
         public bool UseDevelopmentTransactionSeed{ get; set; } = false;
-
+        
+        public bool UseSubscriptions { get; set; } = false;
         public string DatabaseToUse { get; set; } = "InMemorySQLite";
         public string EventBusToUse { get; set; } = "RabbitMQ";
                 

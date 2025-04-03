@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace FinancialServices.Utils
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class EventModelTopicAttribute() : Attribute
+    public class EventIdentificationAttribute() : Attribute
     {
         public required string Topic { get; set; }
-        public string Type { get; set; } = "topic";
+        public string Type { get; set; } = "topic";        
     }
 }

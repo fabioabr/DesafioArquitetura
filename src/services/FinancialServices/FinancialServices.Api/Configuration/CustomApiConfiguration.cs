@@ -58,6 +58,9 @@ namespace FinancialServices.Api.Configuration
                     app.UseDevelopmentSeed();
             }
 
+            if (settings.UseSubscriptions)
+                app.UseSubscriptons();
+
             return app;
         }
         private static WebApplicationBuilder AddEndpointDocuments(this WebApplicationBuilder builder)
@@ -176,7 +179,6 @@ namespace FinancialServices.Api.Configuration
             return app;
         }
 
-
         private static void UseDevelopmentSeed(this WebApplication app)
         {
             var transactionRepository = app.Services.GetRequiredService<IRepository<TransactionEntity>>();
@@ -223,6 +225,6 @@ namespace FinancialServices.Api.Configuration
 
         }
 
-
     }
+
 }

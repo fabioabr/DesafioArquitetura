@@ -7,16 +7,16 @@ using RabbitMQ.Client;
 
 namespace FinancialServices.Infrastructure.Data.Factory
 {
-    public class EventPublisherAdapterFactory : IEventPublisherAdapterFactory
+    public class EventSubscriberAdapterFactory : IEventSubscriberAdapterFactory
     {
         private readonly ApplicationSettingsModel settings;
-        public EventPublisherAdapterFactory(ApplicationSettingsModel settings)
+        public EventSubscriberAdapterFactory(ApplicationSettingsModel settings)
         {
             this.settings = settings;
         }
-        public IEventPublisherAdapter CreateEventPublisherAdapter(ILogger logger)
+       
+        public IEventSubscriberAdapter CreateEventSubscriberAdapter(ILogger logger)
         {
-
             var eventBusType = Enum.Parse<EventBusTypeEnum>(settings.EventBusToUse);
 
             if (eventBusType == EventBusTypeEnum.RabbitMQ)
@@ -36,20 +36,17 @@ namespace FinancialServices.Infrastructure.Data.Factory
                     Port = port,
                     Ssl = new SslOption() { Enabled = false }
                 };
-
                 var connection = connectionFactory.CreateConnectionAsync()
-                    .GetAwaiter().GetResult();
+                   .GetAwaiter().GetResult();
 
-                return new RabbitMQEventPublisherAdapter(connection, logger);
-                 
+                return new RabbitMQEventSubscriberAdapter(connection, logger);
+
             }
             else
             {
                 throw new NotImplementedException("EventBusType not implemented");
             }
-             
         }
-       
     }
 
 }

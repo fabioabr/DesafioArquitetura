@@ -12,6 +12,8 @@ namespace FinancialServices.Application.Financial.Mapper
         {
             CreateMap<TransactionModel, TransactionEntity>().ReverseMap();
             CreateMap<TransactionModel, TransactionCreatedEventModel>().ReverseMap();
+            CreateMap<TransactionEntity, TransactionCreatedEventModel>().ReverseMap();
+
         }
 
     }

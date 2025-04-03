@@ -63,6 +63,7 @@ namespace FinancialServices.Application.Financial.UseCase
         }
 
 
+        //Precisa passar para outro Caso de Uso
         public GenericResponse InvalidateTransactionGroupingCache(DateTime date, TimeZoneInfo timezone, bool eraseAllRecordsOfDay)
         {
             MethodInfo methodInfo = this

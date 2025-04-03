@@ -16,32 +16,36 @@ namespace FinancialServices.Infrastructure.Events.Adapter
 {
     public class RabbitMQEventPublisherAdapter : IEventPublisherAdapter
     {
-        protected readonly ConnectionFactory connectionFactory;        
-        protected readonly Dictionary<string, IChannel> channels;        
-        protected readonly JsonSerializerOptions jsonSerializerOptions;
-
-        public RabbitMQEventPublisherAdapter(ConnectionFactory connectionFactory)
+        protected readonly JsonSerializerOptions jsonSerializerOptions = new()
         {
-            this.connectionFactory = connectionFactory;            
+            Converters = { new JsonStringEnumConverter() },
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
+
+        private readonly IConnection connection;        
+        private readonly Dictionary<string, IChannel> channels;        
+        
+        private readonly ILogger logger;
+
+        public RabbitMQEventPublisherAdapter(IConnection connection, ILogger logger)
+        {
+            this.logger = logger;
+            this.connection = connection;            
             this.channels = new Dictionary<string, IChannel>();
 
-            this.jsonSerializerOptions = new()
-            {
-                Converters = { new JsonStringEnumConverter() },
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            };
+           
         }
         public void Publish<T>(T document, string? routingKey, Dictionary<string,object>? attributes)
         {
             // Obter o nome do tópico a partir do atributo da classe T
             var t = typeof(T);
 
-            var attr = Attribute.GetCustomAttribute(t, typeof(EventModelTopicAttribute));
+            var attr = Attribute.GetCustomAttribute(t, typeof(EventIdentificationAttribute));
             
             if (attr != null)
             {
-                var a = (EventModelTopicAttribute)attr;
+                var a = (EventIdentificationAttribute)attr;
                 var exchangeName = a.Topic;
                 var exchangeType = "topic";
 
@@ -71,10 +75,7 @@ namespace FinancialServices.Infrastructure.Events.Adapter
         private IChannel GetChannel(string exchangeName, string exchangeType)
         {
             if (!channels.ContainsKey(exchangeName))
-            {
-                var connection = connectionFactory.CreateConnectionAsync()
-                    .GetAwaiter().GetResult();
-
+            {                
                 var channel = connection.CreateChannelAsync()
                     .GetAwaiter().GetResult();
 
