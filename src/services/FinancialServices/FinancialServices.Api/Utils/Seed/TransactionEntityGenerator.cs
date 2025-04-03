@@ -133,7 +133,40 @@ namespace FinancialServices.Api.Utils.Seed
             
                       
         }
-         
+
+        public static void GenerateTransactionUsingMessaging(WebApplication app, ILogger logger)
+        {
+            // Cria uma quantidade randomica baseada no rate do periodo atual de transações e insere no banco
+            var useCase = app.Services.GetRequiredService<ICreateTransactionUseCase>();
+
+            var date = DateTime.UtcNow;
+            
+            var qtd = _random.Next(3 ,10) + 1;
+            
+            var transactions = Enumerable
+                .Range(0, qtd)
+                .Select(i => new TransactionModel()
+                {
+                    Amount = _random.Next(1000, 50000) / 100.0M,
+                    Timestamp = DateTime.UtcNow.AddSeconds(_random.Next(59)),
+                    Type = _random.Next(100) <= 1 ? TransactionTypeEnum.Refund : _random.Next(2) == 0 ? TransactionTypeEnum.Credit : TransactionTypeEnum.Debit,
+                    Description = $"Transaction #{_random.Next(100000)}",
+                    DestinationAccount = $"AC{_random.Next(100000)}",
+                    SourceAccount = $"AC{_random.Next(100000)}",
+                    Id = Guid.NewGuid()
+                })
+                .ToList();
+
+
+            foreach (var transaction in transactions)
+            {
+                logger.LogInformation("Creating Transaction {id} - {type} - {amount} - {description} - {sourceAccount} - {destinationAccount}", transaction.Id, transaction.Type, transaction.Amount, transaction.Description, transaction.SourceAccount, transaction.DestinationAccount);
+                transaction.Timestamp = DateTime.UtcNow ;
+                useCase.CreateTransaction(transaction);
+            }
+             
+        }
+
         public enum MomentTypeEnum
         {
             Peak,

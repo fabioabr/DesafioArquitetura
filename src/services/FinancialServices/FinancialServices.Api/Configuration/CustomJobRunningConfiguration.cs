@@ -31,6 +31,7 @@ namespace FinancialServices.Api.Configuration
                         .StartNow()
                         .WithDescription("Execução do Job na subida do Container"));
                     */
+
                     // Trigger para execução a cada 20 minutos
                     q.AddTrigger(t => t
                         .WithIdentity("consolidation-trigger-cron", "financial")

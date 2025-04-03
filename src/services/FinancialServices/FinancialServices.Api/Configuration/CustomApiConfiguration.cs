@@ -54,9 +54,22 @@ namespace FinancialServices.Api.Configuration
 
             if (app.Environment.IsDevelopment())
             {
-                if (settings.UseDevelopmentTransactionSeed)
-                    app.UseDevelopmentSeed();
+                if (settings.UseDevelopmentTransactionBigSeed)
+                    Task.Run(delegate () {
+                        app.UseDevelopmentBigSeed();
+                    });
+                
+
+                if (settings.UseDevelopmentTransactionContinuousSeed)                
+                    Task.Run(delegate () {                         
+                        app.UseDevelopmentContinuousSeed(); 
+                    });
+                    
+                
+                    
             }
+
+ 
 
             if (settings.UseSubscriptions)
                 app.UseSubscriptons();
@@ -179,7 +192,7 @@ namespace FinancialServices.Api.Configuration
             return app;
         }
 
-        private static void UseDevelopmentSeed(this WebApplication app)
+        private static void UseDevelopmentBigSeed(this WebApplication app)
         {
             var transactionRepository = app.Services.GetRequiredService<IRepository<TransactionEntity>>();
 
@@ -224,7 +237,24 @@ namespace FinancialServices.Api.Configuration
 
 
         }
+        private static void UseDevelopmentContinuousSeed(this WebApplication app)
+        {
+            var logger = app.Services.GetRequiredService<ILogger>();
+            logger.LogInformation("DevelopmentContinuousSeed is running");
 
+            var timeToEnd = DateTime.UtcNow.AddMinutes(4);
+
+            logger.LogInformation("Creating Transactions...");
+
+            while (DateTime.UtcNow < timeToEnd)
+            {
+                // Cria o registro
+                
+                TransactionEntityGenerator.GenerateTransactionUsingMessaging(app, logger);
+                Thread.Sleep(1000);
+            } 
+
+        }
     }
 
 }

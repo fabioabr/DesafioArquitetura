@@ -3,27 +3,47 @@ apiVersion: 1
 providers:
   - name: "kong-dashboards"
     orgId: 1
-    folder: "Kong"
+    folder: "API Gateway"
     type: file
     options:
       path: /etc/grafana/dashboards/kong
     editable: true
     allowUiUpdates: true
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 5
     inputs:
       - name: "DS_PROMETHEUS"
         type: "datasource"
         pluginId: "prometheus"
         value: "Prometheus"
+
   - name: "mongodb-dash"
     orgId: 1
-    folder: "MongoDB"
+    folder: "Mongo DB"
     type: file
     options:
       path: /etc/grafana/dashboards/mongodb
     editable: true
     allowUiUpdates: true
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 5
+    inputs:
+      - name: "DS_PROMETHEUS"
+        type: "datasource"
+        pluginId: "prometheus"
+        value: "prometheus"
+      - name: "Prometheus"
+        type: "datasource"
+        pluginId: "prometheus"
+        value: "prometheus"
+
+  - name: "rabbitMQ-dash"
+    orgId: 1
+    folder: "RabbitMQ"
+    type: file
+    options:
+      path: /etc/grafana/dashboards/rabbitmq
+    editable: true
+    allowUiUpdates: true
+    updateIntervalSeconds: 5
     inputs:
       - name: "DS_PROMETHEUS"
         type: "datasource"

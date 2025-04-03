@@ -14,6 +14,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
+using Polly;
 
 namespace FinancialServices.Api.Configuration
 {
@@ -94,15 +95,31 @@ namespace FinancialServices.Api.Configuration
             var processTransactionUseCase = app.Services.GetRequiredService<IProcessTransactionUseCase>();
             var logger = app.Services.GetRequiredService<ILogger>();
 
-            app.Services.GetRequiredService<IEventSubscriber<TransactionCreatedEventModel>>()
-                .StartListening("TransactionProcessor", async (msg, args) => {
+            var subscriber = app.Services.GetRequiredService<IEventSubscriber<TransactionCreatedEventModel>>();
+
+
+            var retryPolicy = Policy
+                .Handle<Exception>()
+                
+                .WaitAndRetry(
+                    retryCount: 5,
+                    sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), // Exponential backoff
+                    onRetry: (exception, retryCount, context) =>
+                    {
+                        Console.WriteLine($"Retrying connection to RabbitMQ (attempt {retryCount})...");
+                    });
+
+            retryPolicy.Execute(() =>
+            {
+                subscriber.StartListening("TransactionProcessor", async (msg, args) =>
+                {
 
                     try
                     {
                         await processTransactionUseCase.ProcessTransaction(msg);
                         args.Ack = true;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         args.Ack = false;
 
@@ -113,7 +130,7 @@ namespace FinancialServices.Api.Configuration
 
                 });
 
-
+            });
 
 
             return app;

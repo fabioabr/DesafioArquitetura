@@ -11,8 +11,9 @@
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
-      - mongodb
-      - rabbitmq
+      - rabbitmq  
+      - mongodb 
+      - mongodb-exporter
     networks:
       - app-network
 
@@ -31,14 +32,14 @@
       - app-network
 
   mongodb-exporter:
-    image: percona/mongodb_exporter:0.44.0
+    image: percona/mongodb_exporter:0.40.0
     container_name: mongodb-exporter
     ports:
       - "9216:9216"
     environment:
       MONGODB_URI: mongodb://admin:admin@mongodb:27017/admin
-    command: 
-      - "--compatible-mode"
+    command: "--collect-all"
+    restart: unless-stopped
     depends_on:
       - mongodb
     networks:

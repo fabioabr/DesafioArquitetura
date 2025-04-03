@@ -36,6 +36,7 @@ namespace FinancialServices.Infrastructure.Data.Factory
                     Port = port,
                     Ssl = new SslOption() { Enabled = false }
                 };
+
                 var connection = connectionFactory.CreateConnectionAsync()
                    .GetAwaiter().GetResult();
 
