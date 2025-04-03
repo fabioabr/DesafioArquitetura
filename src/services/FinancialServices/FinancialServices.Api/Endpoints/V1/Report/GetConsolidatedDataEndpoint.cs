@@ -13,12 +13,17 @@ namespace FinancialServices.Api.Endpoints.V1.Transaction
     {
         public RouteHandlerBuilder Map(IEndpointRouteBuilder routeBuilder)
         {
-            return routeBuilder.MapGet("/{date}", (HttpContext httpContext, [FromServices] IGetConsolidatedReportUseCase getConsolidatedReportUseCase, [FromQuery] DateTime date, [FromHeader(Name = "X-Timezone")] string? timezone) =>
+            return routeBuilder.MapGet("/{date}", (HttpContext httpContext, [FromServices] IGetConsolidatedReportUseCase getConsolidatedReportUseCase, [FromRoute] DateTime date, [FromHeader(Name = "X-Timezone")] string? timezone) =>
             {
                 try
                 {
 
-                    var r = getConsolidatedReportUseCase.GetConsolidatedReport(date.ToUniversalTime().Date, int.Parse(timezone ?? "0"));
+                    var tz = TimeZoneInfo.FindSystemTimeZoneById("UTC");
+                    if (!string.IsNullOrEmpty(timezone))
+                        TimeZoneInfo.TryFindSystemTimeZoneById(timezone, out tz);
+
+                    var utcDateParam = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, DateTimeKind.Utc);
+                    var r = getConsolidatedReportUseCase.GetConsolidatedReport(utcDateParam, tz);
 
                     if (r.Success == false)
                     {

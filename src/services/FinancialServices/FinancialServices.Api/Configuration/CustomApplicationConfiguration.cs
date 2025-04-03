@@ -14,7 +14,8 @@ namespace FinancialServices.Api.Configuration
             builder.Services.AddSingleton<IAuthUserUseCase, AuthUserUseCase>();
             builder.Services.AddSingleton<ICreateTransactionUseCase, CreateTransactionUseCase>();
             builder.Services.AddSingleton<IGetConsolidatedReportUseCase, GetConsolidatedReportUseCase>();
-
+            builder.Services.AddSingleton<ICreateConsolidatedReportsUseCase, CreateConsolidatedReportsUseCase>();
+            
             builder.Services.AddSingleton<IAuthorizationService, AuthorizationService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();                         
             builder.Services.AddSingleton<ITransactionValidationService, TransactionValidationService>();

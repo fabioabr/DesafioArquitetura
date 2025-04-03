@@ -1,8 +1,11 @@
 ﻿using FinancialServices.Api.Attributes;
 using FinancialServices.Api.Contract;
 using FinancialServices.Api.Middleware;
+using FinancialServices.Api.Utils.Seed;
+using FinancialServices.Domain.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Net.NetworkInformation;
@@ -30,7 +33,8 @@ namespace FinancialServices.Api.Configuration
                 .AddEndpointDocuments()
                 .AddSecurityConfiguration()
                 .AddCustomApplicationConfiguration()
-                .AddCustomInfrastructureConfiguration()                
+                .AddCustomInfrastructureConfiguration()  
+                .AddCustomJobRunningConfiguration()
                 ;
 
         }
@@ -38,17 +42,21 @@ namespace FinancialServices.Api.Configuration
         {
             app.UseApplicationEndpoints();
             app.UseCustomMiddlewares();
-            app.UseCustomSwagger();
-            app.UseCustomRedoc();
+            app.UseCustomSwagger();            
                         
             app.UseAuthentication();
             app.UseAuthorization();
-            
+
+            var settings = app.Services.GetRequiredService<IOptions<ApplicationSettingsModel>>().Value;
+
+            if (app.Environment.IsDevelopment())
+            {
+                if (settings.UseDevelopmentTransactionSeed)
+                    app.UseDevelopmentSeed();
+            }
+
             return app;
-        }
-        
-        
-        
+        }         
         private static WebApplicationBuilder AddEndpointDocuments(this WebApplicationBuilder builder)
         {
             builder.Services.AddEndpointsApiExplorer();
@@ -158,55 +166,37 @@ namespace FinancialServices.Api.Configuration
             }
 
             return app;
-        }
-        private static WebApplication UseCustomRedoc(this WebApplication app)
-        {
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseReDoc(c =>
-                {
-                    c.RoutePrefix = "redoc"; // A URL será /redoc/v2
-                    c.DocumentTitle = "Documentação da API - ReDoc v2";
-                    c.SpecUrl("/swagger/v2/swagger.json");
-                    c.ExpandResponses("all");
-                    c.HideDownloadButton(); // Remove o botão de baixar o JSON
-                    c.InjectStylesheet("/default-theme-app.css");
-
-                });
-                
-                app.UseStaticFiles();
-
-
-                /*
-                app.UseReDoc(c =>
-                {
-                    c.RoutePrefix = "redoc/v1"; // A URL será /redoc/v1
-                    c.DocumentTitle = "Documentação da API - ReDoc v1";
-                    c.SpecUrl("/swagger/v1/swagger.json");
-                    c.ExpandResponses("all");
-                    c.HideDownloadButton(); // Remove o botão de baixar o JSON
-                    c.InjectStylesheet("/default-theme-app.css");
-
-                });
-
-                app.UseReDoc(c =>
-                {
-                    c.RoutePrefix = "redoc/v2"; // A URL será /redoc/v2
-                    c.DocumentTitle = "Documentação da API - ReDoc v2";
-                    c.SpecUrl("/swagger/v2/swagger.json");
-                    c.ExpandResponses("all");
-                    c.HideDownloadButton(); // Remove o botão de baixar o JSON
-                    c.InjectStylesheet("/default-theme-app.css");
-
-                });
-                */
-            }
-            return app;
-        }
+        }        
         private static WebApplication UseCustomMiddlewares(this WebApplication app)
         {
             app.UseMiddleware<ApiKeyRequestHandlerMiddleware>();
             return app;
         }
+
+
+        private static void UseDevelopmentSeed(this WebApplication app) 
+        {
+
+            TransactionEntityGenerator.GenerateDailyTransactions(DateTime.UtcNow.AddDays(-5), new TransactionEntityGeneratorRequest()
+            {
+                EasyMomentTransactionCreationFactor = 10, // 20% do total de transações do dia
+                EasyBorderDurationFactor = 20, // 70% do tempo do Momento calmo é transição da borda do momento
+                EasyBorderMomentTransactionCreationFactor = 60, // 70% do total de transações do periodo calmo    
+                EasyMomentStart = new TimeSpan(2, 0, 0), // Horário de início do momento calmo (incluindo a borda)
+                EasyMomentEnd = new TimeSpan(9, 30, 0), // Horário de término do momento calmo (incluindo a borda)
+
+                PeakMomentTransactionCreationFactor = 50, // 50% do total de transações do dia
+                PeakBorderDurationFactor = 20, // 20% do tempo do Momento de pico é transição da borda do momento
+                PeakBorderMomentTransactionCreationFactor = 35, // 20% do total de transações do periodo de pico
+                PeakMomentStart = new TimeSpan(18, 15, 0), // Horário de início do momento de pico (incluindo a borda)
+                PeakMomentEnd = new TimeSpan(22, 0, 0), // Horário de término do momento de pico (incluindo a borda)
+
+                TransactionCountAvgPerMinute = 30 // Média de 30 transações por minuto
+
+            }, app).Wait();
+
+        }
+
+
     }
 }

@@ -3,16 +3,10 @@ using FinancialServices.Domain.Core.Contracts;
 using FinancialServices.Domain.Financial.Contract;
 using FinancialServices.Domain.Financial.Entity;
 using FinancialServices.Domain.Financial.Model;
-using FinancialServices.Utils.Cache;
+using FinancialServices.Domain.Model;
 using FinancialServices.Utils.Shared;
 using Microsoft.Extensions.Logging;
-using Serilog.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace FinancialServices.Application.Financial.UseCase
 {
@@ -21,105 +15,104 @@ namespace FinancialServices.Application.Financial.UseCase
         private readonly ILogger logger;
         private readonly IMapper mapper;
         private readonly IGetConsolidatedReportUseCase getConsolidatedReportUseCase;
-        private readonly IRepository<ConsolidatedReportEntity> consolidatedReportsRepository;
+        private readonly IRepository<TransactionGroupingEntity> transactionGroupingRepository;
         private readonly IRepository<TransactionEntity> transactionRepository;
+        
 
-        public CreateConsolidatedReportsUseCase(ILogger logger, IMapper mapper, IGetConsolidatedReportUseCase getConsolidatedReportUseCase, IRepository<ConsolidatedReportEntity> consolidatedReportsRepository, IRepository<TransactionEntity> transactionRepository)
+        public CreateConsolidatedReportsUseCase(ILogger logger, IMapper mapper, IGetConsolidatedReportUseCase getConsolidatedReportUseCase, IRepository<TransactionGroupingEntity> transactionGroupingRepository, IRepository<TransactionEntity> transactionRepository, IOptions<ApplicationSettingsModel> settings)
         {
             this.logger = logger;
             this.mapper = mapper;
-            this.consolidatedReportsRepository = consolidatedReportsRepository;
+            this.transactionGroupingRepository = transactionGroupingRepository;
             this.transactionRepository = transactionRepository;
             this.getConsolidatedReportUseCase = getConsolidatedReportUseCase;
-        }
-
-
-        public GenericResponse CreateConsolidatedReport(int timezoneOffset = 0)
+            
+        }         
+        public GenericResponse CreateTransactionGroups(TimeZoneInfo[] timezonesToCache)
         {
 
             logger.LogInformation("CreateConsolidatedReportUseCase is running...");
 
             try
             {
-                var lastReport = consolidatedReportsRepository
+                var lastReport = transactionGroupingRepository
                     .Query()
-                    .Where(x => x.TimezoneOffset == timezoneOffset)
-                    .OrderByDescending(x => x.Date)
+                    .OrderByDescending(x => x.Period)
                     .FirstOrDefault();
 
-                DateTime lastReportDateUtc = DateTime.UtcNow;
-                if (lastReport != null)
-                    lastReportDateUtc = lastReport.Date.ToUniversalTime();
-
+                var lastReportDate = DateTime.MinValue.ToUniversalTime();
+                if (lastReport?.Period != null)
+                    lastReportDate = lastReport.Period;
 
                 if (transactionRepository.Query().Any())
                 {
                     var groups = transactionRepository
                         .Query()
-                        .Where(x => x.Timestamp >= lastReportDateUtc)
-                        .ToList()
+                        .Where(x => x.Timestamp.Date >= lastReportDate.Date) // Todas as transações a partir da ultima data do ultimo report ou todas se for o 1º report                        
+                        .GroupBy(x => new { Period = new DateTime(x.Timestamp.Year, x.Timestamp.Month, x.Timestamp.Day, x.Timestamp.Hour, 0, 0), x.Type })
                         .Select(x => new
                         {
-                            LocalTimestamp = TimeZoneInfo.ConvertTimeFromUtc(x.Timestamp, TimeZoneInfo.CreateCustomTimeZone("CustomTimeZone", TimeSpan.FromHours(timezoneOffset), "CustomTimeZone", "CustomTimeZone")),
-                            Type = x.Type,
-                            Amount = x.Amount
-                        })
-                        .GroupBy(x => new { x.LocalTimestamp.Date, x.LocalTimestamp.Hour, x.Type })
-                        .Select(x => new
-                        {
-                            Timestamp = x.Key.Date,
-                            Hour = x.Key.Hour,
+                            Period = x.Key.Period,
                             Type = x.Key.Type,
-                            Total = x.Sum(x => x.Amount)
+                            Total = x.Sum(x => x.Amount),
+                            Count = x.Count()
                         }).ToList();
 
-                    var reports = groups
-                        .GroupBy(x => x.Timestamp.Date)
-                        .Select(x => new ConsolidatedReportModel()
+                    var transactionGroups = groups
+                        .GroupBy(x => new { x.Period, x.Type })
+                        .Select(x => new TransactionGroupingEntity()
                         {
                             Id = Guid.NewGuid(),
-                            Date = x.Key,
-                            TimezoneOffset = timezoneOffset,
-                            Items = x.Select(z => new ConsolidatedReportItemModel()
-                            {
-                                Start = new DateTime(z.Timestamp.Year, z.Timestamp.Month, z.Timestamp.Day, z.Hour, 0, 0),
-                                End = new DateTime(z.Timestamp.Year, z.Timestamp.Month, z.Timestamp.Day, z.Hour, 59, 59),
-                                TransactionType = z.Type,
-                                TotalAmount = x.Sum(n => n.Total),
-                                TransactionCount = x.Count(),
-                            }).ToList()
+                            Period = x.Key.Period,
+                            TransactionType = x.Key.Type,
+                            CreatedAt = DateTime.UtcNow,
+                            TotalAmount = x.Sum(z => z.Total),
+                            TransactionCount = x.Sum(z => z.Count),
                         }).ToList();
 
-                    foreach (var report in reports)
+
+                    var maxPeriod = transactionGroups.Max(p => p.Period);
+                    var minPeriod = transactionGroups.Min(p => p.Period);
+
+                    // Lista os itens que ja existem no banco para descobrir o Id e substituir o registro
+                    var existingPeriods = transactionGroupingRepository
+                        .Query()
+                        .Where(p => p.Period >= minPeriod && p.Period <= maxPeriod)
+                        .Select(p => new { p.Period, p.TransactionType, p.Id })
+                        .ToList();
+
+                    // Reaproveita os IDs dos registros que ja existem no banco
+                    transactionGroups
+                        .GroupJoin(existingPeriods,
+                            r => new { r.Period, r.TransactionType },
+                            e => new { e.Period, e.TransactionType },
+                            (r, e) => new { Report = r, Existing = e.FirstOrDefault() })
+                        .Where(p => p.Existing != null)                        
+                        .ToList()
+                        .ForEach(p => p.Report.Id = p.Existing!.Id);
+
+                    foreach (var transactionGroup in transactionGroups.OrderBy(p => p.Period).ThenBy(p => p.TransactionType))
                     {
+                        // Cria o agrupamentro no banco de dados
+                        logger.LogInformation("Creating report for Period = '{Period}' , TransactionType = '{TransactionType}' !", transactionGroup.Period, transactionGroup.TransactionType);
+                        transactionGroupingRepository.InsertOrUpdate(transactionGroup);
 
-                        logger.LogInformation("Creating reporting to Date = '{ReportDate}' adn Timezone = '{Timezone}'", report.Date, report.TimezoneOffset);
+                        // Obtem os Timezones configurados como preferidos no AppSettings/Envs                        
+                        foreach (var timezone in timezonesToCache)
+                        {
+                            // Invalida o cache do agrupamento
+                            logger.LogInformation("Revalidating cache for Period = '{Period}' , TransactionType = '{TransactionType}' !", transactionGroup.Period, transactionGroup.TransactionType);
+                            var invalidatinResult = getConsolidatedReportUseCase.InvalidateTransactionGroupingCache(transactionGroup.Period, timezone, false);
 
-                        var existingReport = consolidatedReportsRepository
-                            .Query()
-                            .Where(p => p.Date == report.Date && p.TimezoneOffset == report.TimezoneOffset)
-                            .FirstOrDefault()
-                            ;
+                            // Loga o insucesso e vida que segue, pois o cache vai ser expirado quando vencer o tempo de vida
+                            // e será recriado na requisição de consulta qdo necessário.
+                            if (!invalidatinResult.Success)
+                                logger.LogWarning("Was not possible to revalidate cache to Periodo = '{Period}' and Timezone = '{Timezone}', Message = '{message}'", transactionGroup.Period, transactionGroup.TransactionType, invalidatinResult.Message);
 
-                        // Utiliza o id do report q ja existe para substituir o registro caso ja exista no banco
-                        report.Id = existingReport?.Id ?? report.Id;
-                        var entity = mapper.Map<ConsolidatedReportEntity>(report);
-
-                        consolidatedReportsRepository.InsertOrUpdate(entity);
-                        logger.LogInformation("Report from '{ReportDate}' created!", entity.Date);
-
-
-                        logger.LogInformation("Revalidating Cache to Date = '{ReportDate}' and Timezone = '{Timezone}'", report.Date, report.TimezoneOffset);
-
-                        var invalidatinResult = getConsolidatedReportUseCase.InvalidateReportCache(report.Date, report.TimezoneOffset, true);
-
-                        if (invalidatinResult.Success)
-                            logger.LogInformation("Report cache created to Date = '{ReportDate}' and Timezone = '{Timezone}'", report.Date, report.TimezoneOffset);
-                        else
-                            logger.LogWarning("Was not possible to invalidate cache to Date = '{ReportDate}' and Timezone = '{Timezone}', Message = '{message}'", report.Date, report.TimezoneOffset, invalidatinResult.Message);
-
+                        }
+                         
                     }
-
+                     
                     return new GenericResponse()
                         .WithSuccess();
 
@@ -136,10 +129,8 @@ namespace FinancialServices.Application.Financial.UseCase
             }
             catch (Exception ex)
             {
-                logger.LogError("Error creating reports to Timezone Offset = '{TimezoneOffset}' - Message {Message}", timezoneOffset, ex.Message);
-
                 return new GenericResponse()
-                    .WithMessage($"Error creating reports to Timezone Offset = '{timezoneOffset}' - Message {ex.Message}")
+                    .WithMessage("Error creating Transaction Groups - {Message}", ex.Message)
                     .WithException(ex)
                     .WithFail();
             }

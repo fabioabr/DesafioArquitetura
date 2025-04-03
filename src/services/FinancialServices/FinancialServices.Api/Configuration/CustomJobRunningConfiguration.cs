@@ -1,11 +1,6 @@
 ﻿using FinancialServices.Api.Jobs;
+using FinancialServices.Domain.Model;
 using Quartz;
-using Quartz.Impl.Calendar;
-using Quartz.Impl.Matchers;
-using Serilog;
-using Serilog.Filters;
-using Serilog.Sinks.Grafana.Loki;
-using System.Globalization;
 
 namespace FinancialServices.Api.Configuration
 {
@@ -13,12 +8,13 @@ namespace FinancialServices.Api.Configuration
     {
         public static WebApplicationBuilder AddCustomJobRunningConfiguration(this WebApplicationBuilder builder)
         {
-          
-            var useConsolidationReportJob = (Environment.GetEnvironmentVariable("CustomSettings__UseConsolidationReportJob") ?? "true") == "true";
+            var settings = builder.Configuration.GetSection("CustomSettings").Get<ApplicationSettingsModel>()!;
+
+            var useConsolidationReportJob = settings.UseConsolidationReportJob;
 
             if (useConsolidationReportJob) 
             {
-                var cronConfig = Environment.GetEnvironmentVariable("CustomSettings__Jobs__CronScheduleConfig") ?? "0 */20 * * * ?"; // 20 / 20 minutos como padrão
+                var cronConfig = settings.JobsSettings.CreateReportsJob.CronScheduleConfig;
 
                 builder.Services.AddQuartz(q =>
                 {
@@ -27,13 +23,20 @@ namespace FinancialServices.Api.Configuration
 
                     q.AddJob<CreateConsolidatedReportJob>(consolidationJobKey, j => j
                         .WithDescription("Job de consolidação de transações"));
-
+                    /*
+                    // Trigger para execução imediata
                     q.AddTrigger(t => t
-                        .WithIdentity("consolidation-trigger", "financial")
+                        .WithIdentity("consolidation-trigger-init", "financial")
                         .ForJob(consolidationJobKey)
                         .StartNow()
-                        .WithCronSchedule(cronConfig) // configração para executar o job baseado nas configurações
-                        .WithDescription("Trigger que executa o job de consolidação das transações"));
+                        .WithDescription("Execução do Job na subida do Container"));
+                    */
+                    // Trigger para execução a cada 20 minutos
+                    q.AddTrigger(t => t
+                        .WithIdentity("consolidation-trigger-cron", "financial")
+                        .ForJob(consolidationJobKey)
+                        .WithCronSchedule(cronConfig)
+                        .WithDescription("Execução a cada 20 minutos"));
 
                 });
 

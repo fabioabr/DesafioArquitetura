@@ -12,6 +12,7 @@ namespace FinancialServices.Utils.Cache
         bool TryGet(string key, out object value);
         void Invalidate(string key);
         void InvalidateByPrefix(string prefix);
+        void InvalidateByArgument(string prefix, int argumentIndex, object argumentValue);
     }
 
 }

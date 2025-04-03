@@ -4,7 +4,7 @@ namespace FinancialServices.Infrastructure.Data.Contract
 {
     public interface IDatabaseAdapterFactory
     {
-        IDatabaseAdapter CreateDatabaseAdapter(DatabaseTypeEnum databaseType);
+        IDatabaseAdapter CreateDatabaseAdapter();
 
     }
 }

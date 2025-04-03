@@ -1,4 +1,6 @@
-﻿using FinancialServices.Domain.Financial.Model;
+﻿using FinancialServices.Domain.Financial.Entity;
+using FinancialServices.Domain.Financial.Enum;
+using FinancialServices.Domain.Financial.Model;
 using FinancialServices.Domain.Security.Model;
 using FinancialServices.Utils.Shared;
 using System;
@@ -11,8 +13,7 @@ namespace FinancialServices.Domain.Financial.Contract
 {
     public interface IGetConsolidatedReportUseCase
     {
-        GenericResponse<ConsolidatedReportModel> GetConsolidatedReport (DateTime date, int timezoneOffset);
-
-        GenericResponse InvalidateReportCache(DateTime date, int timezoneOffset, bool revalidate);
+        GenericResponse<List<TransactionGroupingModel>?> GetConsolidatedReport(DateTime date, TimeZoneInfo timezone);
+        GenericResponse InvalidateTransactionGroupingCache(DateTime date, TimeZoneInfo timezone, bool eraseAllRecordsOfDay);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using FinancialServices.Domain.Model;
+using Serilog;
 using Serilog.Filters;
 using Serilog.Sinks.Grafana.Loki;
 
@@ -8,24 +9,34 @@ namespace FinancialServices.Api.Configuration
     {
         public static WebApplicationBuilder AddCustomLoggingConfiguration(this WebApplicationBuilder builder)
         {
-
-            var grafanaLokiUrl = builder.Configuration["CustomSettings:Observability:GrafanaLokiUrl"] ?? throw new System.Exception("CustomSettings:Observability:GrafanaLokiUrl is not set");
+            var settings = builder.Configuration.GetSection("CustomSettings").Get<ApplicationSettingsModel>()!;
             var applicationName = builder.Environment.ApplicationName;
             var environment = builder.Environment.EnvironmentName;
+
+            var grafanaLokiUrl = settings.ObservabilitySettings.GrafanaLokiUrl;
+
              
-            
             // Inicialmente cria um log com o Serilog
-            Log.Logger = new LoggerConfiguration()
+            var logConfig = new LoggerConfiguration()
                 .Enrich.WithProperty("ApplicationName", applicationName)
                 .Enrich.WithProperty("Environment", environment)
-                .Enrich.FromLogContext()                
-                .WriteTo.Console()
-                .WriteTo.GrafanaLoki(grafanaLokiUrl).Filter.ByExcluding(
-                    Matching.WithProperty(
-                        "RequestPath", (string p) => 
-                            p.EndsWith("/health") || p.EndsWith("/metrics") || p.Contains("/loki/api/v1/push")
-                )).CreateLogger();
+                .Enrich.FromLogContext()
+                .WriteTo.Console();
 
+            // Se tem a URL do Loki então adiciona como destino dos logs
+            
+            // Uma possibilidade é usar o coletor Promtail no cluster ao inves de enviar o log direto da aplicação
+            // é uma questão de tradeoffs 
+
+            if (!string.IsNullOrEmpty(grafanaLokiUrl))
+                logConfig.WriteTo.GrafanaLoki(grafanaLokiUrl).Filter.ByExcluding(
+                    Matching.WithProperty(
+                        "RequestPath", (string p) =>
+                            p.EndsWith("/health") || p.EndsWith("/metrics") || p.Contains("/loki/api/v1/push")
+                ));
+
+            // Cria o log no formato Serilog
+            Log.Logger = logConfig.CreateLogger();
 
             // Agora Cria um ILogger para não ficarmos dependentes do ILogger do Serilog
             var logger = LoggerFactory.Create(delegate (ILoggingBuilder logBuilder)

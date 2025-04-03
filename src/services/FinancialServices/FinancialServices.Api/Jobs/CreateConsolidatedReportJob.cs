@@ -1,8 +1,8 @@
-﻿
-using FinancialServices.Api.Model;
-using FinancialServices.Domain.Financial.Contract;
+﻿using FinancialServices.Domain.Financial.Contract;
+using FinancialServices.Domain.Model;
 using Microsoft.Extensions.Options;
 using Quartz;
+using System;
 
 namespace FinancialServices.Api.Jobs
 {
@@ -22,20 +22,16 @@ namespace FinancialServices.Api.Jobs
         {
             logger.LogInformation("CreateConsolidatedReportJob is running...");
 
-            var timezoneOffsets = settings.Value.JobsSettings.CreateReportsJob.TimezoneOffsets.Split(",");
+            var timezones = settings.Value.JobsSettings.CreateReportsJob.Timezones
+                .Select(timezoneId => TimeZoneInfo.FindSystemTimeZoneById(timezoneId))
+                .ToArray();
 
-            var hasErrors = false;
+            var result = createConsolidatedReportsUseCase.CreateTransactionGroups(timezones);
 
-            foreach(var tz in timezoneOffsets)
-            {
-                var result = createConsolidatedReportsUseCase.CreateConsolidatedReport(0);
-                hasErrors = hasErrors || !result.Success;
-            }
-
-            if (!hasErrors)
+            if (result.Success)
                 logger.LogInformation("CreateConsolidatedReportJob completed successfully");
             else
-                logger.LogError("CreateConsolidatedReportJob completed with one or more errors");
+                logger.LogError(result.Exception, "CreateConsolidatedReportJob completed with one or more errors");
 
             return Task.CompletedTask;
         }

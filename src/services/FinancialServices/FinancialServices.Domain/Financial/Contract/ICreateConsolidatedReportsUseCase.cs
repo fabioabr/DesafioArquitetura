@@ -11,7 +11,7 @@ namespace FinancialServices.Domain.Financial.Contract
 {
     public interface ICreateConsolidatedReportsUseCase
     {
-        GenericResponse CreateConsolidatedReport(int timezoneOffset);
+        GenericResponse CreateTransactionGroups(TimeZoneInfo[] timezonesToCache);
          
     }
 }

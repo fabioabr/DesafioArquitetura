@@ -57,5 +57,18 @@ namespace FinancialServices.Utils.Cache
                     _cache.Remove(key);
             }
         }
+
+        public void InvalidateByArgument(string prefix, int argumentIndex, object argumentValue)
+        {
+
+            lock (_lock)
+            {
+                var keys = _cache.Keys.Where(k =>k.StartsWith(prefix) && k.Split(":")[argumentIndex] == argumentValue.ToString()).ToList();
+                foreach (var key in keys)
+                    _cache.Remove(key);
+            }
+
+        }
+        
     }
 }

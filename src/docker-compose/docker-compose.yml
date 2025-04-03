@@ -7,31 +7,9 @@
       dockerfile: ./services/FinancialServices/FinancialServices.Api/Dockerfile
     ports:
       - "8080:8080"
-      - "8081:8081"
+      - "8081:8081"    
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
- 
-      - CustomSettings__UseTransactionEndpoints=true
-      - CustomSettings__UseReportEndpoints=true
-      - CustomSettings__UseConsolidationReportJob=true
-
-      - CustomSettings__DatabaseToUse=MongoDb
-      - CustomSettings__EventBusToUse=RabbitMQ
-            
-      - CustomSettings__DatabaseSettings__ConnectionStrings__Default=mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin       
-      - CustomSettings__DatabaseSettings__DatabaseName=FinancialDB
-      
-      - CustomSettings__ObservabilitySettings_GrafanaLokiUrl=http://loki:3100
-      
-      - CustomSettings__EventBusSettings__RabbitMQSettings__HostName=rabbitmq
-      - CustomSettings__EventBusSettings__RabbitMQSettings__Port=5672
-      - CustomSettings__EventBusSettings__RabbitMQSettings__User=admin
-      - CustomSettings__EventBusSettings__RabbitMQSettings__Password=admin
-      - CustomSettings__EventBusSettings__RabbitMQSettings__ExchangeType=topic
-
-      - CustomSettings__JobSettings__CreateReportsJob__CronScheduleConfig=0 */20 * * * ? #<-- roda o job de consolidacao de 20/20 minutos
-      - CustomSettings__JobSettings__CreateReportsJob__TimezoneOffsets=0,-3
-
     depends_on:
       - mongodb
     networks:

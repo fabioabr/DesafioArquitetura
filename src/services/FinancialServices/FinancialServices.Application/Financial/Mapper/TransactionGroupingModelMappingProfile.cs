@@ -7,11 +7,11 @@ using FinancialServices.Domain.Security.Model;
 
 namespace FinancialServices.Application.Financial.Mapper
 {
-    public class ConsolidatedReportModelProfile : Profile
+    public class TransactionGroupingModelMappingProfile : Profile
     {
-        public ConsolidatedReportModelProfile()
+        public TransactionGroupingModelMappingProfile()
         {
-            CreateMap<ConsolidatedReportModel, ConsolidatedReportEntity>().ReverseMap();            
+            CreateMap<TransactionGroupingModel, TransactionGroupingEntity>().ReverseMap();            
         }
 
     }

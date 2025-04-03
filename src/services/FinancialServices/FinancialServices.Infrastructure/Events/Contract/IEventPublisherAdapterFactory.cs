@@ -7,7 +7,7 @@ namespace FinancialServices.Infrastructure.Data.Contract
 {
     public interface IEventPublisherAdapterFactory
     {
-        IEventPublisherAdapter CreateEventPublisherAdapter(EventBusTypeEnum databaseType, ILogger logger);
+        IEventPublisherAdapter CreateEventPublisherAdapter(ILogger logger);
 
     }
 }

@@ -1,17 +1,18 @@
-﻿using FinancialServices.Infrastructure.Enums;
-
-namespace FinancialServices.Api.Model
+﻿
+namespace FinancialServices.Domain.Model
 {
      
     public class ApplicationSettingsModel
     {
         public bool UseTransactionEndpoints { get; set; } = true;
         public bool UseReportEndpoints { get; set; } = true;
-        public bool UseConsolidationReportJob { get; set; } = true;                   
-        public DatabaseTypeEnum DatabaseToUse { get; set; } = DatabaseTypeEnum.InMemorySQLite;
-        public EventBusTypeEnum EventBusToUse { get; set; } = EventBusTypeEnum.RabbitMQ;
+        public bool UseConsolidationReportJob { get; set; } = true;
+        public bool UseDevelopmentTransactionSeed{ get; set; } = false;
+
+        public string DatabaseToUse { get; set; } = "InMemorySQLite";
+        public string EventBusToUse { get; set; } = "RabbitMQ";
                 
-        public DatabaseSettings DatabasSettingse { get; set; } = new();
+        public DatabaseSettings DatabasSettings { get; set; } = new();
         public ObservabilitySettings ObservabilitySettings { get; set; } = new();
         public EventBusSettings EventBusSettings { get; set; } = new();
         public CronJobSettings JobsSettings { get; set; } = new();
@@ -19,7 +20,13 @@ namespace FinancialServices.Api.Model
 
     public class DatabaseSettings
     {
-        public Dictionary<string,string> ConnectionStrings { get; set; } = [];
+        public MongoDbSettings MongoDbSettings {get;set;} = new ();
+       
+    }
+    public class MongoDbSettings
+    {
+        public string ConnectionString { get; set; } = "mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin";
+        public string DatabaseName { get; set; } = "FinancialDB";
     }
 
     public class ObservabilitySettings
@@ -29,7 +36,7 @@ namespace FinancialServices.Api.Model
 
     public class ConnectionStringsSettings
     {        
-        public string MongoDb { get; set; } = string.Empty;
+        public string MongoDB { get; set; } = string.Empty;
     }
 
     public class CronJobSettings
@@ -41,7 +48,7 @@ namespace FinancialServices.Api.Model
     public class CreateReportJobSettings
     {
         public string CronScheduleConfig { get; set; } = "0 */20 * * * ?";
-        public string TimezoneOffsets { get; set; } = "0, -3";
+        public string[] Timezones { get; set; } = ["UTC, America/Sao_Paulo"];
     }
 
     public class EventBusSettings

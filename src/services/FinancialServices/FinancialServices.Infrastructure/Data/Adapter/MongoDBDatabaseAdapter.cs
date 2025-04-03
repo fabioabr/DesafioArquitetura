@@ -48,9 +48,9 @@ namespace FinancialServices.Infrastructure.Data.Adapter
         public async Task RemoveAsync<T>(T entity) where T : IEntity
         {
             await GetCollection<T>().DeleteOneAsync(p=>p.Id == entity.Id);            
-        }
-        public async Task RemoveRangeAsync<T>(IEnumerable<T> entities) where T : IEntity 
-        {
+        }        
+        public async Task RemoveRangeAsync<T>(IEnumerable<T> entities) where T : IEntity
+        {            
             await GetCollection<T>().DeleteManyAsync(p => entities.Any(x => x.Id == p.Id));
         }         
         public async Task UpdateAsync<T>(T entity, object updateFields) where T : IEntity

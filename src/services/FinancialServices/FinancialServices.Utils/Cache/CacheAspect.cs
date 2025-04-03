@@ -16,6 +16,7 @@ namespace FinancialServices.Utils.Cache
             [Argument(Source.Metadata)] MethodBase methodInfo)
         {
             var attr = methodInfo.GetCustomAttribute<CachedMethodAttribute>()!;
+
             var key = CacheAspect.GenerateCacheKey(methodInfo, args);
 
             if (Cache.TryGet(key, out var cached))
@@ -26,10 +27,16 @@ namespace FinancialServices.Utils.Cache
             Cache.Set(key, result, attr.Duration);
             return result;
         }
-
+        
+   
         public static string GenerateCacheKey(MethodBase methodInfo, object[] args)
         {
-            return $"{methodInfo!.DeclaringType!.FullName}.{methodInfo.Name}:{string.Join("_", args.Select(a => a?.ToString()))}";
+            return $"{GenerateCacheKey(methodInfo)}:{string.Join("_", args.Select(a => a?.ToString()))}";
+        }
+
+        public static string GenerateCacheKey(MethodBase methodInfo)
+        {
+            return $"{methodInfo!.DeclaringType!.FullName}.{methodInfo.Name}";
         }
     }
 }

@@ -2,11 +2,11 @@
 using FinancialServices.Domain.Financial.Entity;
 using FinancialServices.Domain.Financial.Event;
 using FinancialServices.Domain.Financial.Model;
+using FinancialServices.Domain.Model;
 using FinancialServices.Domain.Security.Entity;
 using FinancialServices.Infrastructure.Data.Contract;
 using FinancialServices.Infrastructure.Data.Factory;
 using FinancialServices.Infrastructure.Data.Repository;
-using FinancialServices.Infrastructure.Enums;
 using FinancialServices.Infrastructure.Events.Adapter;
 using FinancialServices.Infrastructure.Events.Publishers;
 using MongoDB.Bson;
@@ -26,16 +26,16 @@ namespace FinancialServices.Api.Configuration
             return builder;
 
         }
-
         public static WebApplicationBuilder AddDatabaseConfiguration(this WebApplicationBuilder builder)
         {
-            var databaseToUse = Environment.GetEnvironmentVariable("CustomSettings__DatabaseToUse") ?? throw new System.Exception("CustomSettings__DatabaseToUse is not set");
-            var dbType = Enum.Parse<DatabaseTypeEnum>(databaseToUse, true);
+            var settings = builder.Configuration.GetSection("CustomSettings").Get<ApplicationSettingsModel>()!;
 
+            var dbType = settings.DatabaseToUse;
+            
             builder.Services.AddSingleton<IDatabaseAdapter>(sp =>
             {
-                return new DatabaseAdapterFactory()
-                    .CreateDatabaseAdapter(dbType);
+                return new DatabaseAdapterFactory(settings)
+                    .CreateDatabaseAdapter();
             });
 
             #region Configurações relacionadas ao Mongo DB
@@ -49,21 +49,21 @@ namespace FinancialServices.Api.Configuration
 
             builder.Services.AddSingleton<IRepository<UserEntity>, Repository<UserEntity>>();
             builder.Services.AddSingleton<IRepository<TransactionEntity>, Repository<TransactionEntity>>();
-            builder.Services.AddSingleton<IRepository<ConsolidatedReportEntity>, Repository<ConsolidatedReportEntity>>();
+            builder.Services.AddSingleton<IRepository<TransactionGroupingEntity>, Repository<TransactionGroupingEntity>>();
            
             return builder;
         }
-
         public static WebApplicationBuilder AddEventBusConfiguration(this WebApplicationBuilder builder)
         {
-            var eventBusToUse = Environment.GetEnvironmentVariable("CustomSettings__EventBusToUse") ?? throw new System.Exception("CustomSettings__DatabaseToUse is not set");
-            var eventBusType = Enum.Parse<EventBusTypeEnum>(eventBusToUse, true);
+            var settings = builder.Configuration.GetSection("CustomSettings").Get<ApplicationSettingsModel>()!;
+
+            
 
 
             builder.Services.AddSingleton<IEventPublisherAdapter>(sp =>
             {
-                return new EventPublisherAdapterFactory()
-                    .CreateEventPublisherAdapter(eventBusType, sp.GetRequiredService<ILogger>());
+                return new EventPublisherAdapterFactory(settings)
+                    .CreateEventPublisherAdapter(sp.GetRequiredService<ILogger>());
             });
 
 

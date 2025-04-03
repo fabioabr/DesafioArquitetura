@@ -1,36 +1,39 @@
-﻿
-using FinancialServices.Infrastructure.Data.Adapter;
+﻿using FinancialServices.Domain.Model;
 using FinancialServices.Infrastructure.Data.Contract;
 using FinancialServices.Infrastructure.Enums;
 using FinancialServices.Infrastructure.Events.Adapter;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using System.Data.Common;
-using System.Threading.Channels;
 
 namespace FinancialServices.Infrastructure.Data.Factory
 {
     public class EventPublisherAdapterFactory : IEventPublisherAdapterFactory
     {
-         
-        public IEventPublisherAdapter CreateEventPublisherAdapter(EventBusTypeEnum eventBusType, ILogger logger)
+        private readonly ApplicationSettingsModel settings;
+        public EventPublisherAdapterFactory(ApplicationSettingsModel settings)
         {
+            this.settings = settings;
+        }
+        public IEventPublisherAdapter CreateEventPublisherAdapter(ILogger logger)
+        {
+
+            var eventBusType = Enum.Parse<EventBusTypeEnum>(settings.EventBusToUse);
 
             if (eventBusType == EventBusTypeEnum.RabbitMQ)
             {
 
-                string hostname = Environment.GetEnvironmentVariable("CustomSettings__EventBus__RabbitMQ__HostName") ?? throw new System.Exception("CustomSettings__EventBus__RabbitMQ__HostName is not set"); ;
-                string port = Environment.GetEnvironmentVariable("CustomSettings__EventBus__RabbitMQ__Port") ?? throw new System.Exception("CustomSettings__EventBus__RabbitMQ__Port is not set"); ;
-                string user = Environment.GetEnvironmentVariable("CustomSettings__EventBus__RabbitMQ__User") ?? throw new System.Exception("CustomSettings__EventBus__RabbitMQ__User is not set"); ;
-                string password = Environment.GetEnvironmentVariable("CustomSettings__EventBus__RabbitMQ__Password") ?? throw new System.Exception("CustomSettings__EventBus__RabbitMQ__Password is not set"); ;
-                string exchangeType = Environment.GetEnvironmentVariable("CustomSettings__EventBus__RabbitMQ__ExchangeType") ?? throw new System.Exception("CustomSettings__EventBus__RabbitMQ__ExchangeType is not set"); ;
+                string hostname = settings.EventBusSettings.RabbitMQSettings.HostName;
+                int port = settings.EventBusSettings.RabbitMQSettings.Port;
+                string user = settings.EventBusSettings.RabbitMQSettings.User;
+                string password = settings.EventBusSettings.RabbitMQSettings.Password;
+                string exchangeType = settings.EventBusSettings.RabbitMQSettings.ExchangeType;
 
                 var connectionFactory = new ConnectionFactory()
                 {
                     HostName = hostname,
                     UserName = user,
                     Password = password,
-                    Port = int.Parse(port),
+                    Port = port,
                     Ssl = new SslOption() { Enabled = false }
                 };
 

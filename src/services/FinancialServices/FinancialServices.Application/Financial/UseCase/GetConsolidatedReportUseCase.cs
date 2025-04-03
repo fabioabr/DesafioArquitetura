@@ -2,9 +2,12 @@
 using FinancialServices.Domain.Core.Contracts;
 using FinancialServices.Domain.Financial.Contract;
 using FinancialServices.Domain.Financial.Entity;
+using FinancialServices.Domain.Financial.Enum;
 using FinancialServices.Domain.Financial.Model;
 using FinancialServices.Utils.Cache;
 using FinancialServices.Utils.Shared;
+using Serilog.Core;
+using System;
 using System.Reflection;
 
 namespace FinancialServices.Application.Financial.UseCase
@@ -12,76 +15,83 @@ namespace FinancialServices.Application.Financial.UseCase
     public class GetConsolidatedReportUseCase : IGetConsolidatedReportUseCase
     {
         private readonly IMapper mapper;
-        private readonly IRepository<ConsolidatedReportEntity> consolidatedReportModelRepository;
+        private readonly IRepository<TransactionGroupingEntity> transactionGroupingRepository;
 
-        public GetConsolidatedReportUseCase(IMapper mapper, IRepository<ConsolidatedReportEntity> consolidatedReportModelRepository)
+        public GetConsolidatedReportUseCase(IMapper mapper, IRepository<TransactionGroupingEntity> transactionGroupingRepository)
         {
-            this.consolidatedReportModelRepository = consolidatedReportModelRepository;
+            this.transactionGroupingRepository = transactionGroupingRepository;
             this.mapper = mapper;
         }
 
         [CachedMethod(minutes: 20)]
-        public GenericResponse<ConsolidatedReportModel> GetConsolidatedReport(DateTime date, int timezoneOffset)
+        public GenericResponse<List<TransactionGroupingModel>?> GetConsolidatedReport(DateTime date, TimeZoneInfo timezone)
         {
+            
+            var response = new GenericResponse<List<TransactionGroupingModel>?>();
 
+            // Não permite pesquisar datas futuras
             if (date.ToUniversalTime().Date > DateTime.UtcNow.Date)
-            {
-                // Não permite pesquisar datas futuras
-                return new GenericResponse<ConsolidatedReportModel>()
+            {                
+                return response
                     .WithMessage("Invalid Date")
                     .WithException(new InvalidDataException("Invalid Date"))
                     .WithFail();
             }
 
-            // Tenta obter o report da data informada no parametro
-            var report = consolidatedReportModelRepository
+            var minUtcTimestamp = date;
+            var maxUtcTimestamp = date.AddDays(1).AddMinutes(-1);
+
+            // Tenta obter os Reports de um determinado dia informado no parametro
+            var reports = transactionGroupingRepository
                 .Query()
-                .Where(x => x.Date == date.Date && x.TimezoneOffset == timezoneOffset)
-                .FirstOrDefault();
+                .Where(x => date >= minUtcTimestamp && date <= maxUtcTimestamp)
+                .OrderBy(x => x.Period)
+                .ThenBy(x => x.TransactionType)
+                .ToList();
+
+            // Reescreve a data baseado no timezoneOffset
+            reports.ForEach(p=>
+                p.Period = TimeZoneInfo.ConvertTimeFromUtc(p.Period, timezone)
+            );
              
-            if (report == null)
-            {
-
-                return new GenericResponse<ConsolidatedReportModel>()
-                    .WithMessage("Report Not Found")
-                    .WithException(new KeyNotFoundException("Report Not Found"))
-                    .WithFail();
-
-            }
-
-            return new GenericResponse<ConsolidatedReportModel>()                  
-                  .WithData(mapper.Map<ConsolidatedReportModel>(report))
+            // retorna os agrupamentos consolidados
+            return response
+                  .WithData(mapper.Map<List<TransactionGroupingModel>>(reports))
                   .WithSuccess();
              
         }
 
         
-        public GenericResponse InvalidateReportCache(DateTime date, int timezoneOffset, bool revalidate)
-        {
-            Type typeOfMe = this.GetType();
+        public GenericResponse InvalidateTransactionGroupingCache(DateTime date, TimeZoneInfo timezone, bool eraseAllRecordsOfDay)
+        {            
+            MethodInfo methodInfo = this
+                .GetType()!
+                .GetMethod("GetConsolidatedReport", new Type[] { typeof(DateTime), typeof(TimeZoneInfo) })!;
 
-            MethodInfo methodInfo = typeOfMe.GetMethod("GetConsolidatedReport", new Type[] { typeof(DateTime), typeof(int) });
-
-            if (methodInfo != null)
+            try
             {
-                try
-                {
-                    var key = CacheAspect.GenerateCacheKey(methodInfo, new object[] { date, timezoneOffset });
-                    MethodBase methodBase = methodInfo;
-                    CacheAspect.Cache.Invalidate(key);
+                var baseDate = eraseAllRecordsOfDay ? new DateTime(date.Year, date.Month, date.Day, date.Hour, 0, 0) : date;
+                var itemCount = eraseAllRecordsOfDay ? 24 : 1;
 
-                    if (revalidate)
-                        GetConsolidatedReport(date, timezoneOffset);
+                Enumerable
+                    .Range(0, itemCount)
+                    .ToList()
+                    .ForEach(p =>
+                    {
+                        var key = CacheAspect.GenerateCacheKey(methodInfo, [baseDate.AddHours(p), timezone]);
 
-                }
-                catch (Exception ex)
-                {
-                    return new GenericResponse()
-                        .WithMessage(ex.Message)
-                        .WithException(ex)
-                        .WithFail();
-
-                }
+                        // Invalida o Cache
+                        CacheAspect.Cache.Invalidate(key);
+                       
+                    });
+                  
+            }
+            catch (Exception ex)
+            {
+                return new GenericResponse()
+                    .WithMessage(ex.Message)
+                    .WithException(ex)
+                    .WithFail();
 
             }
 
