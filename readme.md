@@ -139,3 +139,39 @@ Em um cenário de produção, a arquitetura ideal para este sistema seria basead
 Esta arquitetura garante a escalabilidade, a resiliência e a manutenibilidade do sistema, permitindo que ele se adapte às necessidades do negócio e lide com grandes volumes de dados. Além disso, a implementação dos MessageBrokers e dos Repositórios foram feitos com Adapters genéricos facilitando a migração de tecnologia de Mensageria e Banco respectivamente.
 
 Na maioria dos casos coloquei opções gerenciadas, mas precisamos analisar com cautela estas escolhas, pois quanto mais perto ficamos do ServerLess (Facilidade, auto gerenciamento, custo baixo) mais perto ficamos do lockin  de cloud também. 
+
+
+# Cenário de avaliação local com Docker-Compose
+
+## Cenário Proposto 
+
+A solução proposta para o cenário real descreve uma arquitetura de microsserviços robusta e escalável, adequada para um ambiente de produção. As principais características incluem:
+
+* **Microsserviços**: Arquitetura baseada em serviços independentes para coleta, processamento e consolidação de transações.
+* **Mensageria (RabbitMQ)**: Comunicação assíncrona para melhorar o desempenho e a resiliência.
+* **Persistência de Dados (MongoDB e PostgreSQL)**: Bancos de dados NoSQL e relacional para armazenamento eficiente de transações e saldos consolidados.
+* **Segurança**: Implementação de API Keys, rate limiting e criptografia TLS.
+* **Abstração e Adapters**: Uso de Adapters genéricos para facilitar a migração de tecnologias.
+* **Soluções Serverless**: Possibilidade do uso de tecnologia serverless aproveitando o melhor da cloud (auto gerenciamento e disponibilidade)
+
+## Cenário Implementado (Repositório)
+
+A implementação no repositório, por outro lado, é mais simplificada e focada em uma demonstração local. As principais diferenças em relação ao cenário proposto são:
+
+* **Arquitetura Monolítica**: Um projeto ÚNICO de Web API (Minimal API .Net 9.0) que lida com todas as operações, em vez de microsserviços separados. No entanto em um cenário de implantação com imagens docker é perfeitamente possivel distribuir fisicamente a imagem com envs configuradas de formas diferntes para que possa atingir comportamentos distintos em cada implantação (usando a mesma Imagem docker). Neste caso, temos um projeto com tudo, mas implantação funcionalidades distintas em hardware separado.
+* **Mensageria**: A implantação de mensageria é feita na própria API
+* **Segurança Simplificada**: Foi utilizado apenas controle de autenticação com API Key na API ee controle de ratelimit no Kong, demonstrando que podemos escolher entre usar o Gateway para Autenticação/Autorização e segurança do serviço, como podemos usar a própria API (Na maioria das vezes é melhor ter este controle no Gateway, pois vc impede processamento desnecessário no serviço).;
+* **Abstração Limitada**: Abstração usada apenas na camada de infra estruturacom os Adapters de Banco, de Mensageria e os Repositórios implementados com Abstração. O Serviço de controle de cache por exemplo poderia ter uma abstração para plugar em um redis ou outra coisa, mas não foi implementado.
+
+
+## Justificativa para as Diferenças
+
+É importante ressaltar que a implementação completa do cenário proposto com varios microsserviços, aplicação total dos conceitos de Solid, BFF (se houvesse um frontend), testes em todos as classes, testes integrados, etc, não faz sentido para uma demonstração local. O objetivo principal do desafio é avaliar as habilidades de arquitetura e design de software, e não a capacidade de configurar um ambiente de produção complexo.
+
+A implementação atual serve como um protótipo funcional que demonstra os conceitos principais e as decisões de design. Ela pode ser facilmente expandida e adaptada para um ambiente de produção, seguindo as diretrizes do cenário proposto.
+
+## Conclusão
+
+Apesar das diferenças, a implementação no repositório demonstra um bom entendimento dos conceitos de arquitetura e design de software. As decisões tomadas foram justificadas pelo foco na simulação local e na limitação de tempo para o desenvolvimento.
+
+Este documento serve como um guia para entender as diferenças entre os cenários e as decisões tomadas durante a implementação.
