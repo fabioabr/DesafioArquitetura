@@ -9,10 +9,10 @@ namespace FinancialServices.Domain.Security.Entity
     public class UserEntity : IEntity
     {
         
-        public required Guid Id { get; set; }
-        public required string Name { get; set; }
-        public required string UserName { get; set; }
-        public required IEnumerable<string> Roles { get; set; } = [];
-        public required string ApiKey { get; set; }
+        public  Guid Id { get; set; } = Guid.NewGuid();
+        public  string Name { get; set; } = string.Empty;
+        public  string UserName { get; set; } = string.Empty;
+        public  IEnumerable<string> Roles { get; set; } = [];
+        public string ApiKey { get; set; } = string.Empty;     
     }
 }

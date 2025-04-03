@@ -14,12 +14,12 @@ namespace FinancialServices.Domain.Financial.Event
     public class TransactionCreatedEventModel
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public required TransactionTypeEnum Type { get; set; }
-        public required decimal Amount { get; set; }
-        public required string Description { get; set; }
-        public required DateTime Timestamp { get; set; } = DateTime.UtcNow;
-        public required string SourceAccount { get; set; }
-        public required string DestinationAccount { get; set; }
+        public TransactionTypeEnum Type { get; set; }
+        public decimal Amount { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public string SourceAccount { get; set; } = string.Empty;
+        public string DestinationAccount { get; set; } = string.Empty;
         public Guid? OriginalTransactionId { get; set; }
 
     }

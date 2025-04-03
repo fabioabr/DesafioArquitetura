@@ -13,12 +13,12 @@ namespace FinancialServices.Domain.Financial.Entity
     [EntitySetName("TransactionGroups")]
     public class TransactionGroupingEntity : IEntity
     {
-        public required Guid Id { get ; set ; }
-        public required DateTime Period { get; set; } = DateTime.UtcNow;        
-        public required DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public required int TransactionCount { get; set; } = 0;
-        public required decimal TotalAmount { get; set; } = 0;
-        public required TransactionTypeEnum TransactionType { get; set; }
+        public Guid Id { get ; set ; } = Guid.NewGuid();
+        public DateTime Period { get; set; } = DateTime.UtcNow;        
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public int TransactionCount { get; set; } = 0;
+        public decimal TotalAmount { get; set; } = 0;
+        public TransactionTypeEnum TransactionType { get; set; }
         
     }
 

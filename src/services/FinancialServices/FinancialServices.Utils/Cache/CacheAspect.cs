@@ -7,7 +7,7 @@ namespace FinancialServices.Utils.Cache
     public class CacheAspect
     {
          
-        public static readonly IInMemoryCacheService Cache = new InMemoryCacheService();
+        public static IInMemoryCacheService Cache = new InMemoryCacheService();
 
         [Advice(Kind.Around, Targets = Target.Method)]
         public object HandleMethod(

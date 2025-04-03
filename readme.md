@@ -1,0 +1,141 @@
+# Desafio de Arquitetura de Software
+
+O objetivo deste desafio é desenvolver uma arquitetura de software escalável e resiliente, garantindo alta disponibilidade, segurança e desempenho. A arquitetura deve contemplar:
+
+## Aspectos Principais
+
+- **Escalabilidade:** Capacidade de lidar com aumentos de carga sem perda significativa de desempenho, utilizando dimensionamento horizontal, balanceamento de carga e cache.
+- **Resiliência:** Projeto que permita recuperação rápida em casos de falha, incluindo redundância, failover, monitoramento e estratégias de recuperação.
+- **Segurança:** Proteção de dados e sistemas com autenticação, autorização, criptografia e proteção contra ataques.
+- **Padrões Arquiteturais:** Escolha adequada entre microsserviços, monolitos, SOA, serverless, considerando simplicidade e flexibilidade.
+- **Integração:** Comunicação clara e eficiente entre componentes, definindo protocolos, formatos e ferramentas.
+- **Requisitos Não-Funcionais:** Otimização para desempenho, disponibilidade e confiabilidade, com métricas claras.
+- **Documentação:** Registro das decisões arquiteturais, diagramas e fluxos para facilitar comunicação e manutenção.
+
+## Descrição da Solução
+
+O projeto deve permitir ao comerciante controlar o fluxo de caixa diário com lançamentos (débitos e créditos) e gerar um relatório consolidado diário com o saldo.
+
+## Requisitos Técnicos Obrigatórios
+
+- Solução em C#.
+- Testes unitários.
+- Aplicação de boas práticas (Design Patterns, SOLID, etc.).
+- Documentação clara (README).
+- Repositório público no GitHub com todas as documentações necessárias.
+
+## Requisitos Não Funcionais
+
+- Independência entre o serviço de lançamentos e o consolidado diário (tolerância a falhas).
+- Capacidade de receber até 50 requisições por segundo no serviço de consolidação, com até 5% de perda aceitável em picos.
+
+## Observações
+
+São valorizadas decisões técnicas assertivas, considerando também melhorias e evoluções futuras para o sistema proposto.
+
+
+# Proposta para Cenário Real
+
+Em um cenário de produção, a arquitetura ideal para este sistema seria baseada em microsserviços, proporcionando escalabilidade, resiliência e facilidade de manutenção. A solução proposta consiste em três microsserviços principais, juntamente com componentes adicionais para garantir a robustez do sistema:
+
+## Microsserviços:
+
+### API Coletora de Transações:
+
+* Este serviço atua como o ponto de entrada para todas as transações (débitos e créditos).
+* Responsabilidades:
+    * Receber requisições HTTP (RESTful API).
+    * Validar os dados da transação (formato, integridade, etc.).
+    * Poderia enriquecer a mensagem com metadados relevantes (timestamp, identificador da transação, etc.).
+    * Publicar a mensagem validada em uma fila do RabbitMQ.
+* Tecnologias: ASP.NET Core Web API ou Serverless computing (Lambda, Cloud Functions, AWS Fargate , etc)
+* Motivos da alternativa : Ao escolher Serverless computing, você pode abrir mão de um cluster kubernetes para este serviço e ao mesmo tempo pode usufruir de cotas gratuitas de utilização mensal, que dependendo do contrato podem reduzir significativamente o custo com o contexto.
+
+### Processador de Transações:
+
+* Este serviço consome as mensagens da fila do RabbitMQ e persiste as transações no banco de dados.
+* Responsabilidades:
+    * Ouvir a fila do RabbitMQ.
+    * Receber mensagens de transação.
+    * Realizar transformações e adaptações necessárias nos dados.
+    * Persistir os dados no banco de dados MongoDB.
+* Tecnologias: ASP.NET Core Hosted Services ou Serverless computing (Lambda, Cloud Functions,AWS Fargate etc)
+* Motivos da alternativa : Ao escolher Serverless computing, você pode abrir mão de um cluster kubernetes para este serviço e ao mesmo tempo pode usufruir de cotas gratuitas de utilização mensal, que dependendo do contrato podem reduzir significativamente o custo com o contexto.
+
+### Processador de Consolidação:
+
+* Este serviço é responsável por consolidar os dados de transação e gerar o saldo diário.
+* Responsabilidades:
+    * Executar um job agendado (Quartz.NET) várias vezes no dia (dependendo da configuração por env/appsettings).
+    * Consultar o banco de dados MongoDB para obter as transações do período. Utilizando a réplica de leitura para não impactar o serviço de processamento de transações.
+    * Calcular o saldo consolidado por Data/Hora/Tipo.
+    * Armazenar o saldo consolidado no MongoDB.
+    * Expor um endpoint de API para leitura do consolidado usando uma réplica de leitura.
+* Tecnologias: ASP.NET Core Web API ou Serverless computing (Lambda, Cloud Functions, AWS Fargate, etc)
+* Motivos da alternativa : Ao escolher Serverless computing, você pode abrir mão de um cluster kubernetes para este serviço e ao mesmo tempo pode usufruir de cotas gratuitas de utilização mensal, que dependendo do contrato podem reduzir significativamente o custo com o contexto.
+
+## Componentes Adicionais:
+
+### RabbitMQ:
+
+* Utilizado como um message broker para comunicação assíncrona entre a API Coletora e o Processador de Transações.
+* Garante a resiliência e a escalabilidade do sistema, permitindo que os serviços funcionem de forma independente.
+* Pode ser substituído por serviços gerenciados como por exemplo o SQS da AWS e possuí freetier de 1MM de mensagens gratuitas por mês.
+
+### MongoDB:
+
+* Utilizado como banco de dados NoSQL para armazenar as transações.
+* Oferece alta escalabilidade e flexibilidade para lidar com grandes volumes de dados.
+* Pode ser substituído por serviços gerenciados como, por exemplo, o DynamoDB, mas necessitaria da implementação de um novo adapter.
+* Pode ser substituído pelo Atlas MongoDB gerenciados que apesar de fornecer uma cota de Freetier interessante, para o cenário de produção não serviria. Mas para ambientes de desenvolvimento e staging poderia ser usado as cotas reduzindo os custos ate o ambiente de staging.
+
+### PostgreSQL:
+
+* Utilizado como banco de dados do Api Gateway Kong e da interface web Konga.
+* Usado apenas pera tornar possivel a utilização do Kong
+* Se usassemos algum API Gateway gerenciado, seria desnecessário a criação do deployment do Postgres
+
+### Quartz.NET (Pacote):
+
+* Pacote Quartz.Net utilizado para agendar a execução do job de consolidação.
+* Permite a configuração de horários e intervalos de execução flexíveis.
+* Poderia ser substituido por um evento agendado no AWS CloudWatch que dispara uma função lambda para executar o processo de consolidação.
+
+### AspectInjector (Pacote):
+
+* Pacote AspectInjector utilizado para permitir injeção de código em tempo de compilação, de forma que conseguimos criar um "middleware" na execução de qualquer método do sistema, permitindo então a implementação de Cache por método utilizando apenas uma decoração com Atrributo de metodo.
+* Permite a configuração de horários e intervalos de execução flexíveis.
+* Poderia ser substituido por serviços como Redis, ElastiCache (AWS), DynamoDB + DAX (AWS) ou até mesmo um S3 com Cloudfront.
+
+### Docker / Kubernetes:
+
+* Os microsserviços serão conteinerizados usando Docker e orquestrados pelo Kubernetes (Existe a possibilidade de alguns serviços serem gerenciados e substituir deployments do kubernetes... mas isso é um tradeoff sobre custo x praticidade).
+* Isso garante a portabilidade, a escalabilidade e a alta disponibilidade do sistema.
+* Para o caso de escolhermos o Kubernetes, teriamos a vantagem do autoscaling do proprio kubernetes, em compensação teriamos o custo do cluster/gerenciado (GKE, EKS, etc). Existe a possibilidade de gerar as imagens do serviço de disponibilizar em um AWS Fargate por trás de um WAF e um Load Balancer a fim de garantir Resiliencia e Escalabilidade. Outra possibilidade é usarmos AWS Lambda para execução Serverless com melhores possibilidades de escalabilidade e disponibilidade.
+
+### Monitoramento e Log:
+
+* Implementação de um sistema de monitoramento robusto para acompanhar a saúde e o desempenho dos serviços usando Grafana, Prometheus e Loki (para logs).
+* Utilização de logs estruturados para facilitar a depuração e a análise de problemas.
+* Implementação de alertas e notificações para garantir a resposta rápida a problemas críticos
+* Possibilidade de integrar metricas e logs ao CloudWatch sem precisar de um cluster kubernetes com Grafana/Loki/Prometheus.
+
+### Segurança:
+
+* Implementação de mecanismos de autenticação e autorização usando API Key para proteger o serviço de coleta de transações.
+* Proteção dos serviços expostos com rate limit configurado no Gateway.
+* Utilização de criptografia TLS para comunicação segura entre os serviços.
+
+## Fluxo de Dados:
+
+1.  Uma requisição de transação é enviada para a API Coletora.
+2.  A API Coletora valida a requisição e publica a mensagem no RabbitMQ.
+3.  O Processador de Transações consome a mensagem do RabbitMQ e persiste os dados no MongoDB.
+4.  O Quartz.NET dispara o job de consolidação no Processador de Consolidação de N em N minutos (configurável).
+5.  O Processador de Consolidação consulta o MongoDB, calcula o saldo consolidado e armazena de volta no MongoDB em outra collection. (Isso quebra o conceito de micro serviços, no entanto quando temos a possibilidade de implantação muilt-AZ ou Cross Region Replication o banco centralizado passa a ser apenas um ponto lógico, pois fisicamente está em diversos lugares aumentando a segurança, disponibilidade e confiabilidade)
+6.  O saldo consolidado pode ser consultado através de um endpoint da API do Processador de Consolidação, que mantem o response em cache de memória por N minutos (configurável).
+
+## Observações:
+Esta arquitetura garante a escalabilidade, a resiliência e a manutenibilidade do sistema, permitindo que ele se adapte às necessidades do negócio e lide com grandes volumes de dados. Além disso, a implementação dos MessageBrokers e dos Repositórios foram feitos com Adapters genéricos facilitando a migração de tecnologia de Mensageria e Banco respectivamente.
+
+Na maioria dos casos coloquei opções gerenciadas, mas precisamos analisar com cautela estas escolhas, pois quanto mais perto ficamos do ServerLess (Facilidade, auto gerenciamento, custo baixo) mais perto ficamos do lockin  de cloud também. 
