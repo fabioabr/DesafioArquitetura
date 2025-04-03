@@ -175,3 +175,52 @@ A implementação atual serve como um protótipo funcional que demonstra os conc
 Apesar das diferenças, a implementação no repositório demonstra um bom entendimento dos conceitos de arquitetura e design de software. As decisões tomadas foram justificadas pelo foco na simulação local e na limitação de tempo para o desenvolvimento.
 
 Este documento serve como um guia para entender as diferenças entre os cenários e as decisões tomadas durante a implementação.
+
+
+# Stack tecnológica que eu escolheria
+
+Para este projeto, eu optaria por uma arquitetura serverless (neste exemplo AWS), utilizando serviços gerenciados para maximizar a escalabilidade, a resiliência e a eficiência de custos. Acredito que essa abordagem oferece vantagens significativas em relação a implantações em Kubernetes e Fargate, especialmente para um projeto como este.
+
+## Diagrama
+
+![Diagrama](docs/Proposta Serverless.png)
+
+## Custo Estimado (AWS)
+
+![Custo](docs/Proposta Serverless-Custo.png)
+
+## Explicação dos Serviços
+
+* **API Gateway**: Gerencia as requisições de entrada, roteando-as para as funções Lambda apropriadas.
+* **Lambda**: Executa o código da aplicação de forma serverless, escalando automaticamente conforme a demanda.
+* **SQS**: Gerencia a fila de mensagens para o processamento assíncrono das transações.
+* **DocumentDB**: Armazena as transações e os dados consolidados.
+* **EventBridge**: Agenda a execução da função Lambda de consolidação de dados.
+* **ElastiCache**: Armazena os dados consolidados em cache para otimizar o desempenho da API de consolidação.
+
+### Benefícios do Serverless
+
+* **Escalabilidade Automática**: Os serviços serverless escalam automaticamente para lidar com picos de carga, sem a necessidade de provisionar e gerenciar servidores.
+* **Resiliência**: Os serviços gerenciados da AWS são altamente resilientes, com alta disponibilidade e tolerância a falhas.
+* **Eficiência de Custos**: O modelo de pagamento por uso do serverless permite otimizar os custos, pagando apenas pelos recursos consumidos.
+* **Menos Gerenciamento**: A AWS gerencia a infraestrutura, permitindo que a equipe se concentre no desenvolvimento da aplicação.
+* **Implantação Rápida**: A implantação de funções Lambda e outros serviços gerenciados é rápida e fácil.
+
+### Comparação com Kubernetes e Fargate
+
+Embora Kubernetes e Fargate ofereçam flexibilidade e controle, eles exigem mais gerenciamento e podem ser mais caros para cargas de trabalho variáveis. O serverless é ideal para aplicações com picos de tráfego, onde a escalabilidade automática e a eficiência de custos são cruciais.
+
+### Custo Estimado de Operação Mensal
+
+O custo estimado de operação mensal para esta arquitetura serverless é de aproximadamente $XXX, baseado nos seguintes fatores:
+
+* Número de requisições da API Gateway
+* Número de invocações das funções Lambda
+* Quantidade de dados armazenados no DocumentDB
+* Quantidade de mensagens na fila SQS
+* Tempo de execução das funções Lambda
+* Quantidade de dados armazenados em cache no ElastiCache
+
+### Considerações Finais
+
+A arquitetura serverless proposta oferece uma solução robusta, escalável e eficiente para o controle de fluxo de caixa diário. A utilização de serviços gerenciados da AWS permite otimizar os custos e reduzir o esforço de gerenciamento, permitindo que a equipe se concentre no desenvolvimento da aplicação.
