@@ -306,7 +306,7 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
     * **Konga:**
         * O Konga estará disponivel em `http://localhost:1337`.
         * Usuario será criado no primeiro acesso... sugestão (admin123/admin123)
-   * **Prometheus:**
+    * **Prometheus:**
         * O Prometheus estará disponivel em `http://localhost:9090`.
         * Não é necessário ter usuário e senha
           
