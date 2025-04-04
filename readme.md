@@ -218,6 +218,11 @@ O custo estimado de operação mensal para esta arquitetura serverless foi basea
 * Quantidade de dados armazenados em cache no ElastiCache
 
 
+### Considerações Finais
+
+A arquitetura serverless proposta oferece uma solução robusta, escalável e eficiente para o controle de fluxo de caixa diário. A utilização de serviços gerenciados da AWS permite otimizar os custos e reduzir o esforço de gerenciamento, permitindo que a equipe se concentre no desenvolvimento da aplicação.
+
+
 ## Executando a Aplicação Localmente
 
 Para executar a aplicação localmente e acessar todos os componentes, siga os passos abaixo. Certifique-se de que você possui as seguintes versões instaladas:
@@ -293,13 +298,28 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
         * O MongoDB estará acessível na porta padrão (27017). Você pode usar um cliente como o MongoDB Compass para se conectar.
     * **RabbitMQ Admin:**
         * O painel de administração do RabbitMQ estará disponível em `http://localhost:15672`.
-        * Use as credenciais padrão (geralmente `guest/guest`) para fazer login.
+        * Use as credenciais padrão ( `admin/admin`) para fazer login.
     * **Grafana:**
         * O Grafana estará disponível em `http://localhost:3000`.
         * Use as credenciais padrão (geralmente `admin/admin`) para fazer login.
+        * Existem dashboards JA CONFIGURADOS para o Kong, MongoDB e RabbitMQ
+
+          * Mongo DB
+         ![Dash MongoDB](https://github.com/fabioabr/DesafioArquitetura/blob/master/docs/Diagramas/DashboardMongodb.png?raw=true)
+
+          * RabbitMQ
+         ![Dash MongoDB](https://github.com/fabioabr/DesafioArquitetura/blob/master/docs/Diagramas/DashboardRabbitmq.png?raw=true)
+
+          * Kong
+         ![Dash MongoDB](https://github.com/fabioabr/DesafioArquitetura/blob/master/docs/Diagramas/DashboardKong.png?raw=true)
+          
     * **Konga:**
         * O Konga estará disponivel em `http://localhost:1337`.
-
+        * Usuario será criado no primeiro acesso... sugestão (admin123/admin123)
+    * **Prometheus:**
+        * O Prometheus estará disponivel em `http://localhost:9090`.
+        * Não é necessário ter usuário e senha
+          
 4.  **Executando Testes:**
 
     * Para executar os testes unitários, utilize o comando:
@@ -307,6 +327,61 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
     ```bash
     dotnet test
     ```
+    Ou execute pelo Test Explorer do próprio visual studio
+
+5.  **App Settings:**
+
+    * Abaixo o JSON de configuração contido no APP Settings
+      
+    ```json
+    {
+     "CustomSettings": {
+       "UseDevelopmentTransactionBigSeed": false, // Roda um script de alimentação de dados com 3 dias de carga, gera aproximadamente 50 registros por minuto na média  (Diretamente no banco de dados)
+       "UseDevelopmentTransactionContinuousSeed": false, // Roda um job por 20 minutos que fica inserindo randomicamente de 4 a 10 registros a cada 2 segundos, passando pelo UseCase. Ou seja, gera mensageria.
+       "UseTransactionEndpoints": true, // se false, não expoe os endpoints       
+       "UseConsolidationReportJob": true, // se false não roda o job schedulado para consolidar as transações
+       "UseSubscriptions": true, // se false, não le a fila para processar as transações
+
+       "DatabaseToUse": "MongoDB", // Usado para a factory de construção do adapter de banco de dados 
+       "EventBusToUse": "RabbitMQ", // Usado para a factory de construção do adapter de mensageria
+
+       "DatabaseSettings": {
+         "MongoDB": {
+           "ConnectionString": "mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin",
+           "DatabaseName": "FinancialDB"
+         }
+   
+       },
+       "ObservabilitySettings": {
+         "GrafanaLokiUrl": "http://loki:3100"
+       },
+       "EventBusSettings": {
+         "RabbitMQSettings": {
+           "HostName": "rabbitmq",
+           "Port": 5672,
+           "User": "admin",
+           "Password": "admin",
+           "ExchangeType": "topic"
+         }
+       },
+       "JobSettings": {
+         "CreateReportsJob": {
+           "CronScheduleConfig": "0 */20 * * * ?", // se UseConsolidationReportJob = true, usa essa configuração para definir o intervalo de execução
+           "Timezones": [ "UTC", "America/Sao_Paulo" ] // se UseDevelopmentTransactionBigSeed = true, recria o cache para os timezones configurados aqui ao recriar os relatórios consolidados
+         }
+       }
+     },
+   
+     "Logging": {
+       "LogLevel": {
+         "Default": "Information",
+         "Microsoft.AspNetCore": "Warning"
+       }
+     },
+     "AllowedHosts": "*"
+    }
+
+    
 
 ### Considerações
 
@@ -316,7 +391,3 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
 
 Este tópico fornece instruções claras para executar a aplicação localmente e acessar todos os componentes necessários para desenvolvimento e teste.
 
-
-### Considerações Finais
-
-A arquitetura serverless proposta oferece uma solução robusta, escalável e eficiente para o controle de fluxo de caixa diário. A utilização de serviços gerenciados da AWS permite otimizar os custos e reduzir o esforço de gerenciamento, permitindo que a equipe se concentre no desenvolvimento da aplicação.
