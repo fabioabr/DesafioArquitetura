@@ -303,6 +303,16 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
         * O Grafana estará disponível em `http://localhost:3000`.
         * Use as credenciais padrão (geralmente `admin/admin`) para fazer login.
         * Existem dashboards JA CONFIGURADOS para o Kong, MongoDB e RabbitMQ
+
+          * Mongo DB
+         ![Dash MongoDB](https://github.com/fabioabr/DesafioArquitetura/blob/master/docs/Diagramas/DashboardMongodb.png?raw=true)
+
+          * RabbitMQ
+         ![Dash MongoDB](https://github.com/fabioabr/DesafioArquitetura/blob/master/docs/Diagramas/DashboardRabbitmq.png?raw=true)
+
+          * Kong
+         ![Dash MongoDB](https://github.com/fabioabr/DesafioArquitetura/blob/master/docs/Diagramas/DashboardKong.png?raw=true)
+          
     * **Konga:**
         * O Konga estará disponivel em `http://localhost:1337`.
         * Usuario será criado no primeiro acesso... sugestão (admin123/admin123)
