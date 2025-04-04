@@ -302,7 +302,7 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
     * **Grafana:**
         * O Grafana estará disponível em `http://localhost:3000`.
         * Use as credenciais padrão (geralmente `admin/admin`) para fazer login.
-        * Existem dashboards para o Kong, MongoDB e RabbitMQ
+        * Existem dashboards JA CONFIGURADOS para o Kong, MongoDB e RabbitMQ
     * **Konga:**
         * O Konga estará disponivel em `http://localhost:1337`.
         * Usuario será criado no primeiro acesso... sugestão (admin123/admin123)
