@@ -322,55 +322,54 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
 5.  **App Settings:**
 
     * Para executar os testes unitários, utilize o comando:
-    ```bash
+    ```json
     {
-  "CustomSettings": {
-    "UseDevelopmentTransactionBigSeed": false,
-    "UseDevelopmentTransactionContinuousSeed": false,
-    "UseTransactionEndpoints": true,
-    "UseReportEndpoints": true,
-    "UseConsolidationReportJob": true,
-    "UseSubscriptions": true,
-    "DatabaseToUse": "MongoDB",
-    "EventBusToUse": "RabbitMQ",
-    "DatabaseSettings": {
-      "MongoDB": {
-        "ConnectionString": "mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin",
-        "DatabaseName": "FinancialDB"
-      }
-
-    },
-    "ObservabilitySettings": {
-      "GrafanaLokiUrl": "http://loki:3100"
-    },
-    "EventBusSettings": {
-      "RabbitMQSettings": {
-        "HostName": "rabbitmq",
-        "Port": 5672,
-        "User": "admin",
-        "Password": "admin",
-        "ExchangeType": "topic"
-      }
-    },
-    "JobSettings": {
-      "CreateReportsJob": {
-        "CronScheduleConfig": "0 */20 * * * ?",
-        "Timezones": [ "UTC", "America/Sao_Paulo" ]
-      }
+     "CustomSettings": {
+       "UseDevelopmentTransactionBigSeed": false,
+       "UseDevelopmentTransactionContinuousSeed": false,
+       "UseTransactionEndpoints": true,
+       "UseReportEndpoints": true,
+       "UseConsolidationReportJob": true,
+       "UseSubscriptions": true,
+       "DatabaseToUse": "MongoDB",
+       "EventBusToUse": "RabbitMQ",
+       "DatabaseSettings": {
+         "MongoDB": {
+           "ConnectionString": "mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin",
+           "DatabaseName": "FinancialDB"
+         }
+   
+       },
+       "ObservabilitySettings": {
+         "GrafanaLokiUrl": "http://loki:3100"
+       },
+       "EventBusSettings": {
+         "RabbitMQSettings": {
+           "HostName": "rabbitmq",
+           "Port": 5672,
+           "User": "admin",
+           "Password": "admin",
+           "ExchangeType": "topic"
+         }
+       },
+       "JobSettings": {
+         "CreateReportsJob": {
+           "CronScheduleConfig": "0 */20 * * * ?",
+           "Timezones": [ "UTC", "America/Sao_Paulo" ]
+         }
+       }
+     },
+   
+     "Logging": {
+       "LogLevel": {
+         "Default": "Information",
+         "Microsoft.AspNetCore": "Warning"
+       }
+     },
+     "AllowedHosts": "*"
     }
-  },
 
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*"
-
-}
-
-    ```
+    
 
 ### Considerações
 
