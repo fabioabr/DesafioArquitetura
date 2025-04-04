@@ -322,7 +322,7 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
 5.  **App Settings:**
 
     * Para executar os testes unitários, utilize o comando:
-    ```json
+    ```bash
     {
   "CustomSettings": {
     "UseDevelopmentTransactionBigSeed": false,
