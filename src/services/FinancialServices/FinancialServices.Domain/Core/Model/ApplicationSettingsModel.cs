@@ -4,8 +4,7 @@ namespace FinancialServices.Domain.Model
      
     public class ApplicationSettingsModel
     {
-        public bool UseTransactionEndpoints { get; set; } = true;
-        public bool UseReportEndpoints { get; set; } = true;
+        public bool UseTransactionEndpoints { get; set; } = true;        
         public bool UseConsolidationReportJob { get; set; } = true;
         public bool UseDevelopmentTransactionBigSeed{ get; set; } = false;
         public bool UseDevelopmentTransactionContinuousSeed { get; set; } = false;

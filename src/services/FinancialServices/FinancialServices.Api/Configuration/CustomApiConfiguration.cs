@@ -43,14 +43,19 @@ namespace FinancialServices.Api.Configuration
         }
         public static WebApplication UseCustomApiConfiguration(this WebApplication app)
         {
-            app.UseApplicationEndpoints();
+            var settings = app.Services.GetRequiredService<IOptions<ApplicationSettingsModel>>().Value;
+
+            if (settings.UseTransactionEndpoints)
+                app.UseApplicationEndpoints();
+
+
             app.UseCustomMiddlewares();
             app.UseCustomSwagger();
 
             app.UseAuthentication();
             app.UseAuthorization();
 
-            var settings = app.Services.GetRequiredService<IOptions<ApplicationSettingsModel>>().Value;
+            
 
             if (app.Environment.IsDevelopment())
             {
@@ -68,8 +73,6 @@ namespace FinancialServices.Api.Configuration
                 
                     
             }
-
- 
 
             if (settings.UseSubscriptions)
                 app.UseSubscriptons();
