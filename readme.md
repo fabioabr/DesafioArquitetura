@@ -187,7 +187,7 @@ Para este projeto, eu optaria por uma arquitetura serverless (neste exemplo AWS)
 
 ## Custo Estimado (AWS)
 
-![Custo]([docs/Diagramas/Proposta Serverless-Custo.png])
+![Custo](https://github.com/fabioabr/DesafioArquitetura/blob/master/docs/Diagramas/Proposta%20Serverless-Custo.png?raw=true)
 
 ## Explicação dos Serviços
 
