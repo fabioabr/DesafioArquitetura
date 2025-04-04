@@ -36,7 +36,7 @@ São valorizadas decisões técnicas assertivas, considerando também melhorias 
 
 # Proposta para Cenário Real
 
-Em um cenário de produção, a arquitetura ideal para este sistema seria baseada em microsserviços, proporcionando escalabilidade, resiliência e facilidade de manutenção. A solução proposta consiste em três microsserviços principais, juntamente com componentes adicionais para garantir a robustez do sistema:
+Em um cenário de produção, a arquitetura ideal para este sistema seria baseada em microsserviços, proporcionando escalabilidade, resiliência e facilidade de manutenção. A solução proposta consiste em três microsserviços principais, juntamente com componentes adicionais para garantir a robustez do sistema (ou uma proposta totalmente focada em Serverless computing, detalhada no final do documento):
 
 ## Microsserviços:
 
@@ -184,10 +184,6 @@ Para este projeto, eu optaria por uma arquitetura serverless (neste exemplo AWS)
 ## Diagrama
 
 ![Diagrama](https://github.com/fabioabr/DesafioArquitetura/blob/master/docs/Diagramas/Proposta%20Serverless.png?raw=true)
-
-## Custo Estimado (AWS)
-
-![Custo](https://github.com/fabioabr/DesafioArquitetura/blob/master/docs/Diagramas/Proposta%20Serverless-Custo.png?raw=true)
 
 ## Explicação dos Serviços
 
