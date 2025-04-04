@@ -212,7 +212,7 @@ Embora Kubernetes e Fargate ofereçam flexibilidade e controle, eles exigem mais
 
 ### Custo Estimado de Operação Mensal
 
-O custo estimado de operação mensal para esta arquitetura serverless é de aproximadamente $XXX, baseado nos seguintes fatores:
+O custo estimado de operação mensal para esta arquitetura serverless foi baseado nos seguintes fatores:
 
 * Número de requisições da API Gateway
 * Número de invocações das funções Lambda
@@ -220,6 +220,106 @@ O custo estimado de operação mensal para esta arquitetura serverless é de apr
 * Quantidade de mensagens na fila SQS
 * Tempo de execução das funções Lambda
 * Quantidade de dados armazenados em cache no ElastiCache
+
+
+## Executando a Aplicação Localmente
+
+Para executar a aplicação localmente e acessar todos os componentes, siga os passos abaixo. Certifique-se de que você possui as seguintes versões instaladas:
+
+* **Docker Desktop:** v4.40 ou superior
+* **Visual Studio 2022:** v17.13.5 ou superior
+* **.NET 9**
+
+### Passos para Execução
+
+1.  **Clone o Repositório:**
+
+    ```bash
+    git clone <URL do repositório>
+    cd <nome do repositório>
+    ```
+
+2.  **Execute o Docker Compose:**
+    
+    ```bash
+    docker-compose up --build
+    ```
+    A partir da pasta:
+
+    ```bash
+    /src/docker-compose/
+    ```
+
+    Este comando irá construir e iniciar todos os containers necessários para a aplicação, incluindo:
+
+    * Financial API
+    * MongoDB
+    * RabbitMQ
+    * Grafana
+    * Konga / Konga-db
+    * Kong / Kong-db
+    * Prometheus
+    
+3.  **Acesse os Componentes:**
+
+    * **API:**
+        * A API estará disponível através do Kong em `http://localhost:8000`.
+        
+        * Criação de Transação:
+
+        ```bash
+        curl --location 'http://localhost:8000/financial/api/v1/transaction' \
+            --header 'x-api-key: 9e3f2b78-d79e-4dc1-9b19-13a96d109af6' \
+            --header 'Content-Type: application/json' \
+            --data '{
+            "type": "Debit",
+            "amount": 368.00,
+            "description": "Payment for invoice #1234",
+            "timestamp": "2025-04-03T11:46:00Z",
+            "sourceAccount": "ACC123456",
+            "destinationAccount": "XXXXXX",
+            "originalTransactionId": null
+            }'
+        ```
+
+        * Obtenção do Relatório consolidado por dia:
+  
+        ```bash
+        curl --location 'http://localhost:8000/reports/api/v1/daily-report/2025-03-30' \
+            --header 'X-Api-Key: 9e3f2b78-d79e-4dc1-9b19-13a96d109af6' \
+            --header 'X-Timezone: America/Sao_Paulo'
+        ```
+
+        Importante passar o timezone para o relatório ser montado corretamente de acord com a Data do timezone do usuário.
+
+
+    * **MongoDB:**
+        * O MongoDB estará acessível na porta padrão (27017). Você pode usar um cliente como o MongoDB Compass para se conectar.
+    * **RabbitMQ Admin:**
+        * O painel de administração do RabbitMQ estará disponível em `http://localhost:15672`.
+        * Use as credenciais padrão (geralmente `guest/guest`) para fazer login.
+    * **Grafana:**
+        * O Grafana estará disponível em `http://localhost:3000`.
+        * Use as credenciais padrão (geralmente `admin/admin`) para fazer login.
+    * **Konga:**
+        * O Konga estará disponivel em `http://localhost:1337`.
+
+4.  **Executando Testes:**
+
+    * Para executar os testes unitários, utilize o comando:
+
+    ```bash
+    dotnet test
+    ```
+
+### Considerações
+
+* Certifique-se de que o Docker Desktop esteja em execução antes de executar o `docker-compose up`.
+* As portas utilizadas pelos componentes podem ser configuradas no arquivo `docker-compose.yml`.
+* As credenciais de acesso dos componentes, também podem ser configuradas no arquivo `docker-compose.yml`.
+
+Este tópico fornece instruções claras para executar a aplicação localmente e acessar todos os componentes necessários para desenvolvimento e teste.
+
 
 ### Considerações Finais
 
