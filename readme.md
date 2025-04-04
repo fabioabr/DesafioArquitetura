@@ -218,6 +218,11 @@ O custo estimado de operação mensal para esta arquitetura serverless foi basea
 * Quantidade de dados armazenados em cache no ElastiCache
 
 
+### Considerações Finais
+
+A arquitetura serverless proposta oferece uma solução robusta, escalável e eficiente para o controle de fluxo de caixa diário. A utilização de serviços gerenciados da AWS permite otimizar os custos e reduzir o esforço de gerenciamento, permitindo que a equipe se concentre no desenvolvimento da aplicação.
+
+
 ## Executando a Aplicação Localmente
 
 Para executar a aplicação localmente e acessar todos os componentes, siga os passos abaixo. Certifique-se de que você possui as seguintes versões instaladas:
@@ -293,19 +298,78 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
         * O MongoDB estará acessível na porta padrão (27017). Você pode usar um cliente como o MongoDB Compass para se conectar.
     * **RabbitMQ Admin:**
         * O painel de administração do RabbitMQ estará disponível em `http://localhost:15672`.
-        * Use as credenciais padrão (geralmente `guest/guest`) para fazer login.
+        * Use as credenciais padrão ( `admin/admin`) para fazer login.
     * **Grafana:**
         * O Grafana estará disponível em `http://localhost:3000`.
         * Use as credenciais padrão (geralmente `admin/admin`) para fazer login.
+        * Existem dashboards para o Kong, MongoDB e RabbitMQ
     * **Konga:**
         * O Konga estará disponivel em `http://localhost:1337`.
-
+        * Usuario será criado no primeiro acesso... sugestão (admin123/admin123)
+   * **Prometheus:**
+        * O Prometheus estará disponivel em `http://localhost:9090`.
+        * Não é necessário ter usuário e senha
+          
 4.  **Executando Testes:**
 
     * Para executar os testes unitários, utilize o comando:
 
     ```bash
     dotnet test
+    ```
+    Ou execute pelo Test Explorer do próprio visual studio
+
+5.  **App Settings:**
+
+    * Para executar os testes unitários, utilize o comando:
+    ```json
+    {
+  "CustomSettings": {
+    "UseDevelopmentTransactionBigSeed": false,
+    "UseDevelopmentTransactionContinuousSeed": false,
+    "UseTransactionEndpoints": true,
+    "UseReportEndpoints": true,
+    "UseConsolidationReportJob": true,
+    "UseSubscriptions": true,
+    "DatabaseToUse": "MongoDB",
+    "EventBusToUse": "RabbitMQ",
+    "DatabaseSettings": {
+      "MongoDB": {
+        "ConnectionString": "mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin",
+        "DatabaseName": "FinancialDB"
+      }
+
+    },
+    "ObservabilitySettings": {
+      "GrafanaLokiUrl": "http://loki:3100"
+    },
+    "EventBusSettings": {
+      "RabbitMQSettings": {
+        "HostName": "rabbitmq",
+        "Port": 5672,
+        "User": "admin",
+        "Password": "admin",
+        "ExchangeType": "topic"
+      }
+    },
+    "JobSettings": {
+      "CreateReportsJob": {
+        "CronScheduleConfig": "0 */20 * * * ?",
+        "Timezones": [ "UTC", "America/Sao_Paulo" ]
+      }
+    }
+  },
+
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+
+}
+
     ```
 
 ### Considerações
@@ -316,7 +380,3 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
 
 Este tópico fornece instruções claras para executar a aplicação localmente e acessar todos os componentes necessários para desenvolvimento e teste.
 
-
-### Considerações Finais
-
-A arquitetura serverless proposta oferece uma solução robusta, escalável e eficiente para o controle de fluxo de caixa diário. A utilização de serviços gerenciados da AWS permite otimizar os custos e reduzir o esforço de gerenciamento, permitindo que a equipe se concentre no desenvolvimento da aplicação.
