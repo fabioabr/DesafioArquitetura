@@ -321,18 +321,20 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
 
 5.  **App Settings:**
 
-    * Para executar os testes unitários, utilize o comando:
+    * Abaixo o JSON de configuração contido no APP Settings
+      
     ```json
     {
      "CustomSettings": {
-       "UseDevelopmentTransactionBigSeed": false,
-       "UseDevelopmentTransactionContinuousSeed": false,
-       "UseTransactionEndpoints": true,
-       "UseReportEndpoints": true,
-       "UseConsolidationReportJob": true,
-       "UseSubscriptions": true,
-       "DatabaseToUse": "MongoDB",
-       "EventBusToUse": "RabbitMQ",
+       "UseDevelopmentTransactionBigSeed": false, // Roda um script de alimentação de dados com 3 dias de carga, gera aproximadamente 50 registros por minuto na média  (Diretamente no banco de dados)
+       "UseDevelopmentTransactionContinuousSeed": false, // Roda um job por 20 minutos que fica inserindo randomicamente de 4 a 10 registros a cada 2 segundos, passando pelo UseCase. Ou seja, gera mensageria.
+       "UseTransactionEndpoints": true, // se false, não expoe os endpoints       
+       "UseConsolidationReportJob": true, // se false não roda o job schedulado para consolidar as transações
+       "UseSubscriptions": true, // se false, não le a fila para processar as transações
+
+       "DatabaseToUse": "MongoDB", // Usado para a factory de construção do adapter de banco de dados 
+       "EventBusToUse": "RabbitMQ", // Usado para a factory de construção do adapter de mensageria
+
        "DatabaseSettings": {
          "MongoDB": {
            "ConnectionString": "mongodb://admin:admin@mongodb:27017/FinancialDB?authSource=admin",
@@ -354,8 +356,8 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
        },
        "JobSettings": {
          "CreateReportsJob": {
-           "CronScheduleConfig": "0 */20 * * * ?",
-           "Timezones": [ "UTC", "America/Sao_Paulo" ]
+           "CronScheduleConfig": "0 */20 * * * ?", // se UseConsolidationReportJob = true, usa essa configuração para definir o intervalo de execução
+           "Timezones": [ "UTC", "America/Sao_Paulo" ] // se UseDevelopmentTransactionBigSeed = true, recria o cache para os timezones configurados aqui ao recriar os relatórios consolidados
          }
        }
      },
