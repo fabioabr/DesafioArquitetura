@@ -388,6 +388,3 @@ Para executar a aplicação localmente e acessar todos os componentes, siga os p
 * Certifique-se de que o Docker Desktop esteja em execução antes de executar o `docker-compose up`.
 * As portas utilizadas pelos componentes podem ser configuradas no arquivo `docker-compose.yml`.
 * As credenciais de acesso dos componentes, também podem ser configuradas no arquivo `docker-compose.yml`.
-
-Este tópico fornece instruções claras para executar a aplicação localmente e acessar todos os componentes necessários para desenvolvimento e teste.
-
